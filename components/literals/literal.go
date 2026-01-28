@@ -15,7 +15,7 @@ type Stringer interface {
 type Literal interface {
 	Kind() ValueKind
 	String() string
-	Equals(l Literal) BoolLiteral
+	Equals(l Literal) *BoolLiteral
 	Eval() (Literal, error)
 }
 

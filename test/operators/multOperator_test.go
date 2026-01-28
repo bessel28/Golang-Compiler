@@ -1,4 +1,4 @@
-package test
+package operators
 
 import (
 	. "compiler/components"
@@ -8,25 +8,25 @@ import (
 	"testing"
 )
 
-func TestSubOperator(t *testing.T) {
+func TestMultOperator(t *testing.T) {
 	var tests = []struct {
 		a, b int
 		res  int
 	}{
-		{0, 1, -1},
-		{-5, -3, -2},
-		{2, -2, 4},
-		{2, 5, -3},
-		{5, 2, 3},
+		{0, 1, 0},
+		{-5, -3, 15},
+		{2, -2, -4},
+		{2, 5, 10},
+		{5, 2, 10},
 	}
 
 	for index, tt := range tests {
-		testName := fmt.Sprintf("SubOperator%d", index)
+		testName := fmt.Sprintf("MultOperator%d", index)
 		t.Run(testName, func(t *testing.T) {
 			binOperator1 := BinaryOperator{
 				Left:  &IntLiteral{Value: tt.a},
 				Right: &IntLiteral{Value: tt.b},
-				Op:    SubOperator{},
+				Op:    MultOperator{},
 			}
 
 			expectedAnswer, _ := (&IntLiteral{Value: tt.res}).Eval()
@@ -36,7 +36,7 @@ func TestSubOperator(t *testing.T) {
 	}
 }
 
-func TestStringSubOperator(t *testing.T) {
+func TestStringMultOperator(t *testing.T) {
 	var tests = []struct {
 		a, b interface{}
 	}{
@@ -46,17 +46,17 @@ func TestStringSubOperator(t *testing.T) {
 	}
 
 	for index, tt := range tests {
-		testName := fmt.Sprintf("StringSubOperator%d", index)
+		testName := fmt.Sprintf("StringMultOperator%d", index)
 		t.Run(testName, func(t *testing.T) {
 			binOperator := BinaryOperator{
 				Left:  NewLiteral(tt.a),
 				Right: NewLiteral(tt.b),
-				Op:    SubOperator{},
+				Op:    MultOperator{},
 			}
 
 			_, err := binOperator.Eval()
 			if err == nil {
-				t.Errorf("Expected string Subiplication to return an error")
+				t.Errorf("Expected string multiplication to return an error")
 			}
 		})
 

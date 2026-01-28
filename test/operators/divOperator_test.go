@@ -1,4 +1,4 @@
-package test
+package operators
 
 import (
 	. "compiler/components"

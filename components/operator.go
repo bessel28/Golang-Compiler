@@ -13,13 +13,6 @@ type UnaryOperator struct {
 	Op   Operator
 }
 
-type TernaryOperator struct {
-	Condition Expression
-	Left      Expression
-	Right     Expression
-	Op        Operator
-}
-
 type Operator interface {
 	Apply(args ...Expression) (literals.Literal, error)
 }
@@ -30,9 +23,5 @@ func (op UnaryOperator) Eval() (literals.Literal, error) {
 }
 func (op BinaryOperator) Eval() (literals.Literal, error) {
 	expr, err := op.Op.Apply(op.Left, op.Right)
-	return expr, err
-}
-func (op TernaryOperator) Eval() (literals.Literal, error) {
-	expr, err := op.Op.Apply(op.Condition, op.Left, op.Right)
 	return expr, err
 }

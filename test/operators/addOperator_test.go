@@ -1,4 +1,4 @@
-package test
+package operators
 
 import (
 	. "compiler/components"
@@ -151,8 +151,8 @@ func TestIntStringAddOperator(t *testing.T) {
 	}
 }
 
-func EvaluateTest(t *testing.T, binOperator BinaryOperator, expectedLiteral Literal) {
-	literal, err := binOperator.Eval()
+func EvaluateTest(t *testing.T, expr Expression, expectedLiteral Literal) {
+	literal, err := expr.Eval()
 	if err != nil {
 		t.Errorf("Error evaluating literal: %v", err)
 	}

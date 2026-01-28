@@ -4,12 +4,12 @@ type StringLiteral struct {
 	Value string
 }
 
-func (l *StringLiteral) Equals(l2 Literal) BoolLiteral {
+func (l *StringLiteral) Equals(l2 Literal) *BoolLiteral {
 	o, ok := l2.(*StringLiteral)
 	if !ok {
-		return BoolLiteral{false}
+		return &BoolLiteral{false}
 	}
-	return BoolLiteral{l.Value == o.Value}
+	return &BoolLiteral{l.Value == o.Value}
 }
 
 func (l *StringLiteral) Eval() (Literal, error) {
