@@ -2,6 +2,7 @@ package test
 
 import (
 	. "compiler/components"
+	. "compiler/components/literals"
 	. "compiler/components/operators"
 	"fmt"
 	"testing"
@@ -150,13 +151,13 @@ func TestIntStringAddOperator(t *testing.T) {
 	}
 }
 
-func EvaluateTest(t *testing.T, binOperator BinaryOperator, expectedLiteral *Literal) {
+func EvaluateTest(t *testing.T, binOperator BinaryOperator, expectedLiteral Literal) {
 	literal, err := binOperator.Eval()
 	if err != nil {
 		t.Errorf("Error evaluating literal: %v", err)
 	}
 
-	if !(expectedLiteral).Equals(*literal) {
+	if !expectedLiteral.Equals(literal).Value {
 		t.Errorf("Incorrect literal. Expected: %v, got: %v", expectedLiteral, literal)
 	}
 }

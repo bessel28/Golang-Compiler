@@ -1,5 +1,7 @@
 package components
 
+import "compiler/components/literals"
+
 type Expression interface {
-	Eval() (*Literal, error)
+	Eval() (literals.Literal, error)
 }

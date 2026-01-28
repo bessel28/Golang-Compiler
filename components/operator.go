@@ -1,5 +1,7 @@
 package components
 
+import "compiler/components/literals"
+
 type BinaryOperator struct {
 	Left  Expression
 	Right Expression
@@ -19,18 +21,18 @@ type TernaryOperator struct {
 }
 
 type Operator interface {
-	Apply(args ...Expression) (*Literal, error)
+	Apply(args ...Expression) (literals.Literal, error)
 }
 
-func (op UnaryOperator) Eval() (*Literal, error) {
+func (op UnaryOperator) Eval() (literals.Literal, error) {
 	expr, err := op.Op.Apply(op.Left)
 	return expr, err
 }
-func (op BinaryOperator) Eval() (*Literal, error) {
+func (op BinaryOperator) Eval() (literals.Literal, error) {
 	expr, err := op.Op.Apply(op.Left, op.Right)
 	return expr, err
 }
-func (op TernaryOperator) Eval() (*Literal, error) {
+func (op TernaryOperator) Eval() (literals.Literal, error) {
 	expr, err := op.Op.Apply(op.Condition, op.Left, op.Right)
 	return expr, err
 }

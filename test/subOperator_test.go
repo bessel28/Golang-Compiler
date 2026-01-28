@@ -2,6 +2,7 @@ package test
 
 import (
 	. "compiler/components"
+	. "compiler/components/literals"
 	. "compiler/components/operators"
 	"fmt"
 	"testing"
@@ -37,19 +38,19 @@ func TestSubOperator(t *testing.T) {
 
 func TestStringSubOperator(t *testing.T) {
 	var tests = []struct {
-		a, b Literal
+		a, b interface{}
 	}{
-		{*NewLiteral(1), *NewLiteral("test")},
-		{*NewLiteral("test"), *NewLiteral(1)},
-		{*NewLiteral("test"), *NewLiteral("test")},
+		{1, "test"},
+		{"test", 1},
+		{"test", "test"},
 	}
 
 	for index, tt := range tests {
 		testName := fmt.Sprintf("StringSubOperator%d", index)
 		t.Run(testName, func(t *testing.T) {
 			binOperator := BinaryOperator{
-				Left:  &tt.a,
-				Right: &tt.b,
+				Left:  NewLiteral(tt.a),
+				Right: NewLiteral(tt.b),
 				Op:    SubOperator{},
 			}
 
