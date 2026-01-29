@@ -1,6 +1,8 @@
-package components
+package operators
 
-import "compiler/components/literals"
+import (
+	. "compiler/components/ast"
+)
 
 type BinaryOperator struct {
 	Left  Expression
@@ -14,14 +16,14 @@ type UnaryOperator struct {
 }
 
 type Operator interface {
-	Apply(args ...Expression) (literals.Literal, error)
+	Apply(args ...Expression) (Literal, error)
 }
 
-func (op UnaryOperator) Eval() (literals.Literal, error) {
+func (op UnaryOperator) Eval() (Literal, error) {
 	expr, err := op.Op.Apply(op.Left)
 	return expr, err
 }
-func (op BinaryOperator) Eval() (literals.Literal, error) {
+func (op BinaryOperator) Eval() (Literal, error) {
 	expr, err := op.Op.Apply(op.Left, op.Right)
 	return expr, err
 }

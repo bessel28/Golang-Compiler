@@ -1,7 +1,7 @@
 package operators
 
 import (
-	. "compiler/components"
+	. "compiler/components/ast"
 	. "compiler/components/literals"
 	"errors"
 	"fmt"

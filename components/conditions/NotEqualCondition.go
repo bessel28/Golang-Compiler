@@ -1,9 +1,8 @@
 package conditions
 
 import (
-	. "compiler/components"
+	. "compiler/components/ast"
 	. "compiler/components/literals"
-	"errors"
 )
 
 type NotEqualCondition struct {
@@ -11,24 +10,21 @@ type NotEqualCondition struct {
 }
 
 func (e *NotEqualCondition) Eval() (Literal, error) {
-	return e.check(e.Left, e.Right)
+	check, err := e.Check()
+	return &BoolLiteral{check}, err
 }
 
-func (e *NotEqualCondition) check(args ...Expression) (*BoolLiteral, error) {
-	if len(args) != 2 {
-		return nil, errors.New("expected 2 arguments")
-	}
-
-	leftLiteral, err := args[0].Eval()
-	rightLiteral, err2 := args[1].Eval()
+func (e *NotEqualCondition) Check() (bool, error) {
+	leftLiteral, err := e.Left.Eval()
+	rightLiteral, err2 := e.Right.Eval()
 
 	if err != nil || err2 != nil {
-		return nil, err
+		return false, err
 	}
 
-	if leftLiteral.Equals(rightLiteral).Value {
-		return &BoolLiteral{Value: false}, nil
+	if leftLiteral.Equals(rightLiteral) {
+		return false, nil
 	}
 
-	return &BoolLiteral{Value: true}, nil
+	return true, nil
 }

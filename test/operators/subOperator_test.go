@@ -1,7 +1,6 @@
 package operators
 
 import (
-	. "compiler/components"
 	. "compiler/components/literals"
 	. "compiler/components/operators"
 	"fmt"

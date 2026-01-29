@@ -1,7 +1,7 @@
 package operators
 
 import (
-	. "compiler/components"
+	. "compiler/components/ast"
 	. "compiler/components/conditions"
 	. "compiler/components/literals"
 	. "compiler/components/operators"

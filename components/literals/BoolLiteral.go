@@ -1,27 +1,38 @@
 package literals
 
-import "fmt"
+import (
+	"compiler/components/ast"
+	"fmt"
+)
 
 type BoolLiteral struct {
 	Value bool
 }
 
-func (l *BoolLiteral) Kind() ValueKind {
-	return BoolKind
+func (l *BoolLiteral) AsBool() (bool, error) {
+	return l.Value, nil
 }
 
-func (l *BoolLiteral) Equals(l2 Literal) *BoolLiteral {
+func (l *BoolLiteral) Kind() ast.ValueKind {
+	return ast.BoolKind
+}
+
+func (l *BoolLiteral) Equals(l2 ast.Literal) bool {
 	o, ok := l2.(*BoolLiteral)
 	if !ok {
-		return &BoolLiteral{false}
+		return false
 	}
-	return &BoolLiteral{l.Value == o.Value}
+	return l.Value == o.Value
 }
 
-func (l *BoolLiteral) Eval() (Literal, error) {
+func (l *BoolLiteral) Eval() (ast.Literal, error) {
 	return l, nil
 }
 
 func (l *BoolLiteral) String() string {
 	return fmt.Sprintf("%t", l.Value)
+}
+
+func (l *BoolLiteral) Check() (bool, error) {
+	return l.Value, nil
 }

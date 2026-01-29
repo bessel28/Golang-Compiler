@@ -1,9 +1,8 @@
 package conditions
 
 import (
-	. "compiler/components"
+	. "compiler/components/ast"
 	. "compiler/components/literals"
-	"errors"
 )
 
 type EqualCondition struct {
@@ -11,19 +10,16 @@ type EqualCondition struct {
 }
 
 func (e *EqualCondition) Eval() (Literal, error) {
-	return e.check(e.Left, e.Right)
+	check, err := e.Check()
+	return &BoolLiteral{check}, err
 }
 
-func (e *EqualCondition) check(args ...Expression) (*BoolLiteral, error) {
-	if len(args) != 2 {
-		return nil, errors.New("expected 2 arguments")
-	}
-
-	leftLiteral, err := args[0].Eval()
-	rightLiteral, err2 := args[1].Eval()
+func (e *EqualCondition) Check() (bool, error) {
+	leftLiteral, err := e.Left.Eval()
+	rightLiteral, err2 := e.Right.Eval()
 
 	if err != nil || err2 != nil {
-		return nil, err
+		return false, err
 	}
 
 	return leftLiteral.Equals(rightLiteral), nil

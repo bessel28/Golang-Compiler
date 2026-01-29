@@ -1,8 +1,8 @@
 package conditions
 
 import (
-	"compiler/components"
-	"compiler/components/conditions"
+	. "compiler/components/ast"
+	. "compiler/components/conditions"
 	. "compiler/components/literals"
 	"fmt"
 	"testing"
@@ -24,7 +24,7 @@ func TestLessThanCondition(t *testing.T) {
 	for index, tt := range tests {
 		testName := fmt.Sprintf("LessThanCondition%d", index)
 		t.Run(testName, func(t *testing.T) {
-			condition := conditions.LessThanCondition{&components.BinaryCondition{Left: tt.val1, Right: tt.val2}}
+			condition := LessThanCondition{&BinaryCondition{Left: tt.val1, Right: tt.val2}}
 
 			conditionCheck, err := condition.Eval()
 			if err != nil {
@@ -57,7 +57,7 @@ func TestInvalidLessThanCondition(t *testing.T) {
 	for index, tt := range tests {
 		testName := fmt.Sprintf("InvalidLessThanCondition%d", index)
 		t.Run(testName, func(t *testing.T) {
-			condition := conditions.LessThanCondition{&components.BinaryCondition{Left: tt.val1, Right: tt.val2}}
+			condition := LessThanCondition{&BinaryCondition{Left: tt.val1, Right: tt.val2}}
 
 			_, err := condition.Eval()
 			if err == nil {

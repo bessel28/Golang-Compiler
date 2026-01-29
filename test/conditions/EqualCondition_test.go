@@ -1,8 +1,8 @@
 package conditions
 
 import (
-	"compiler/components"
-	"compiler/components/conditions"
+	. "compiler/components/ast"
+	. "compiler/components/conditions"
 	. "compiler/components/literals"
 	"fmt"
 	"testing"
@@ -25,7 +25,7 @@ func TestEqualCondition(t *testing.T) {
 	for index, tt := range tests {
 		testName := fmt.Sprintf("EqualCondition%d", index)
 		t.Run(testName, func(t *testing.T) {
-			condition := conditions.EqualCondition{&components.BinaryCondition{Left: tt.val1, Right: tt.val2}}
+			condition := EqualCondition{&BinaryCondition{Left: tt.val1, Right: tt.val2}}
 
 			conditionCheck, err := condition.Eval()
 			if err != nil {

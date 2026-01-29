@@ -1,7 +1,7 @@
 package operators
 
 import (
-	. "compiler/components"
+	. "compiler/components/ast"
 	. "compiler/components/literals"
 	. "compiler/components/operators"
 	"fmt"
@@ -157,7 +157,7 @@ func EvaluateTest(t *testing.T, expr Expression, expectedLiteral Literal) {
 		t.Errorf("Error evaluating literal: %v", err)
 	}
 
-	if !expectedLiteral.Equals(literal).Value {
+	if !expectedLiteral.Equals(literal) {
 		t.Errorf("Incorrect literal. Expected: %v, got: %v", expectedLiteral, literal)
 	}
 }
