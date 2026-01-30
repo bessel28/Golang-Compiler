@@ -8,30 +8,6 @@ import (
 	"strconv"
 )
 
-type TokenType int
-
-const (
-	TokenEOF TokenType = iota
-	TokenNumber
-	TokenBool
-	TokenString
-	TokenPlus
-	TokenMinus
-	TokenMultiply
-	TokenDivide
-	TokenOpenParenthesis
-	TokenCloseParenthesis
-	TokenQuestionMark
-	TokenColon
-	TokenEQ
-	TokenNeq
-	TokenGT
-	TokenLT
-	TokenOr
-	TokenAnd
-	TokenNot
-)
-
 type Token struct {
 	Type  TokenType
 	Value string
@@ -231,87 +207,8 @@ func (p *Parser) parseTerm() Expression {
 		if current == nil {
 			panic("Nil token")
 		}
-		return literals.NewLiteral(current)
+		return literals.NewLiteral(current.Value)
 	default:
 		panic("Unknown token " + p.current().Value)
 	}
-}
-
-func Lex(input string) []Token {
-	tokens := []Token{}
-
-	for i := 0; i < len(input); i++ {
-		token, index := parseToken(input[i:], 0)
-		if token == nil {
-			continue
-		}
-		tokens = append(tokens, *token)
-		i += index
-	}
-	tokens = append(tokens, Token{Type: TokenEOF})
-	return tokens
-}
-
-func parseToken(input string, i int) (*Token, int) {
-	switch input[i] {
-	case '+':
-		return &Token{TokenPlus, "+"}, i
-	case '-':
-		return &Token{TokenMinus, "-"}, i
-	case '*':
-		return &Token{TokenMultiply, "*"}, i
-	case '/':
-		return &Token{TokenDivide, "/"}, i
-	case '(':
-		return &Token{TokenOpenParenthesis, "("}, i
-	case ')':
-		return &Token{TokenCloseParenthesis, ")"}, i
-	case '>':
-		return &Token{TokenGT, ">"}, i
-	case '<':
-		return &Token{TokenGT, "<"}, i
-	case '?':
-		return &Token{TokenQuestionMark, "?"}, i
-	case ':':
-		return &Token{TokenColon, ":"}, i
-		//TODO Finish adding the remaining Lex Tokens
-	default:
-		literal, newIndex := LexLiteral(input, i)
-		if literal == nil {
-			return nil, i
-		}
-		return literal, newIndex
-	}
-}
-
-func LexLiteral(input string, i int) (*Token, int) {
-	start := i
-
-	if i+4 < len(input) && input[i:i+4] == "true" {
-		return &Token{TokenBool, "true"}, i + 3
-	} else if i+5 < len(input) && input[i:i+5] == "false" {
-		return &Token{TokenBool, "false"}, i + 5
-	} else if input[i] == '"' {
-		for i+1 < len(input) && input[i+1] != '"' {
-			i++
-		}
-		if input[i+1] == '"' {
-			return &Token{TokenString, input[start : i+2]}, i
-		}
-		panic("Missing end quote from string token")
-	} else if input[i] == '\'' {
-		for i+1 < len(input) && input[i+1] != '\'' {
-			i++
-		}
-		if input[i+1] == '\'' {
-			return &Token{TokenString, input[start : i+2]}, i
-		}
-		panic("Missing end single quote from string token")
-	} else if input[i] >= '0' && input[i] <= '9' {
-		for i+1 < len(input) && input[i+1] >= '0' && input[i+1] <= '9' {
-			i++
-		}
-		return &Token{TokenNumber, input[start : i+1]}, i
-	}
-	return nil, i + 1
 }

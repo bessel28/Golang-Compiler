@@ -4,7 +4,6 @@ import (
 	. "compiler/components/ast"
 	. "compiler/components/literals"
 	"errors"
-	"fmt"
 )
 
 type TernaryOperator struct {
@@ -31,6 +30,5 @@ func (op *TernaryOperator) Eval() (Literal, error) {
 	} else {
 		literal, err = op.Right.Eval()
 	}
-	fmt.Println(op)
 	return literal, err
 }

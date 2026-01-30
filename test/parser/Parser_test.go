@@ -51,12 +51,12 @@ func Test_ParserIntValue(t *testing.T) {
 		{"1+1", 2},
 		{"1+1*2", 3},
 		{"2*2+1", 5},
-		{"(1+1)*2)", 4},
+		{"(1+1)*2", 4},
 		{"5>4?1:2", 1},
 	}
 
 	for index, tt := range tests {
-		testName := fmt.Sprintf("LexParser%d", index)
+		testName := fmt.Sprintf("LexIntParser%d", index)
 		t.Run(testName, func(t *testing.T) {
 			parser := parser2.NewParser(tt.input)
 			expr := parser.ParseExpr()
@@ -71,4 +71,88 @@ func Test_ParserIntValue(t *testing.T) {
 	}
 }
 
-//TODO test logical operators and string & bool parsing
+func Test_ParserIntSpacesValue(t *testing.T) {
+	var tests = []struct {
+		input string
+		value int
+	}{
+		{"1 + 1", 2},
+		{"1 + 1 * 2", 3},
+		{"2 * 2 + 1", 5},
+		{"( 1 + 1 ) * 2", 4},
+		{"5 > 4 ? 1 : 2", 1},
+	}
+
+	for index, tt := range tests {
+		testName := fmt.Sprintf("LexIntSpacesParser%d", index)
+		t.Run(testName, func(t *testing.T) {
+			parser := parser2.NewParser(tt.input)
+			expr := parser.ParseExpr()
+
+			exprVal, _ := expr.Eval()
+
+			if !exprVal.Equals(NewLiteral(tt.value)) {
+				t.Errorf("Incorrect eval. Expected %v got %v", tt.value, exprVal)
+			}
+
+		})
+	}
+}
+
+func Test_ParserStringValue(t *testing.T) {
+	var tests = []struct {
+		input string
+		value string
+	}{
+		{`"a"+"b"`, "ab"},
+		{`"ab"+"c"`, "abc"},
+		{`"ab"+""`, "ab"},
+		{`""+"c"`, "c"},
+	}
+
+	for index, tt := range tests {
+		testName := fmt.Sprintf("LexStringParser%d", index)
+		t.Run(testName, func(t *testing.T) {
+			parser := parser2.NewParser(tt.input)
+			expr := parser.ParseExpr()
+
+			exprVal, _ := expr.Eval()
+
+			if !exprVal.Equals(NewLiteral(tt.value)) {
+				t.Errorf("Incorrect eval. Expected %v got %v", tt.value, exprVal)
+			}
+
+		})
+	}
+}
+
+func Test_ParserBoolValue(t *testing.T) {
+	var tests = []struct {
+		input string
+		value bool
+	}{
+		{`true || false`, true},
+		{`true && false`, false},
+		{`true && true`, true},
+		{`(true || false) && true`, true},
+		{`true && (true || false)`, true},
+		{`true || true || false`, true},
+		{`true || true && false`, true},
+		{`true && true || false`, true},
+	}
+
+	for index, tt := range tests {
+		testName := fmt.Sprintf("LexBoolParser%d", index)
+		t.Run(testName, func(t *testing.T) {
+			parser := parser2.NewParser(tt.input)
+			expr := parser.ParseExpr()
+
+			exprVal, _ := expr.Eval()
+
+			if !exprVal.Equals(NewLiteral(tt.value)) {
+				t.Errorf("Incorrect eval. Expected %v got %v", tt.value, exprVal)
+			}
+
+		})
+	}
+}

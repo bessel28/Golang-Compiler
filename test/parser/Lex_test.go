@@ -65,10 +65,10 @@ func Test_LexLiteralParser(t *testing.T) {
 	}{
 		{"1", Token{TokenNumber, "1"}},
 		{"2", Token{TokenNumber, "2"}},
-		{`"a"`, Token{TokenString, `"a"`}},
-		{`"ab"`, Token{TokenString, `"ab"`}},
-		{`'ab'`, Token{TokenString, `'ab'`}},
-		{`"123"`, Token{TokenString, `"123"`}},
+		{`"a"`, Token{TokenString, `a`}},
+		{`"ab"`, Token{TokenString, `ab`}},
+		{`'ab'`, Token{TokenString, `ab`}},
+		{`"123"`, Token{TokenString, `123`}},
 	}
 
 	for index, tt := range tests {
