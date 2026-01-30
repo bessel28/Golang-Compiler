@@ -3,6 +3,7 @@ package conditions
 import (
 	. "compiler/components/ast"
 	. "compiler/components/literals"
+	"errors"
 )
 
 type UnaryCondition struct {
@@ -18,5 +19,5 @@ func (c *UnaryCondition) Eval() (Literal, error) {
 }
 
 func (c *UnaryCondition) Check() (bool, error) {
-	panic("Non-Implemented check function - Generic BinaryCondition")
+	return false, errors.New("UnaryCondition Check function - Generic UnaryCondition check used")
 }

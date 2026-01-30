@@ -37,6 +37,6 @@ func (e *GreaterThanCondition) Check() (bool, error) {
 	case StringKind:
 		return leftLiteral.(*StringLiteral).Value > rightLiteral.(*StringLiteral).Value, nil
 	default:
-		panic("unhandled default case")
+		return false, errors.New("unhandled default case")
 	}
 }

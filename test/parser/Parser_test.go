@@ -22,21 +22,24 @@ func Test_Parser(t *testing.T) {
 	for index, tt := range tests {
 		testName := fmt.Sprintf("LexParser%d", index)
 		t.Run(testName, func(t *testing.T) {
-			parser := parser2.NewParser(tt.input)
-			expr := parser.ParseExpr()
-
-			fmt.Printf("Expected: %+v\n", tt.expectedExpression)
-			fmt.Printf("Actual: %+v\n", expr)
+			parser, parserErr := parser2.NewParser(tt.input)
+			if parserErr != nil {
+				t.Fatalf("parser error: %s", parserErr)
+			}
+			expr, exprErr := parser.ParseExpr()
+			if exprErr != nil {
+				t.Fatalf("expression error: %s", parserErr)
+			}
 
 			if reflect.TypeOf(expr) != reflect.TypeOf(tt.expectedExpression) {
-				t.Errorf("Incorrect Expression Type. Expected %T got %T", tt.expectedExpression, expr)
+				t.Fatalf("Incorrect Expression Type. Expected %T got %T", tt.expectedExpression, expr)
 			}
 
 			exprVal, _ := expr.Eval()
 			expectedVal, _ := tt.expectedExpression.Eval()
 
 			if !exprVal.Equals(expectedVal) {
-				t.Errorf("Incorrect eval. Expected %v got %v", expectedVal, exprVal)
+				t.Fatalf("Incorrect eval. Expected %v got %v", expectedVal, exprVal)
 			}
 
 		})
@@ -58,13 +61,19 @@ func Test_ParserIntValue(t *testing.T) {
 	for index, tt := range tests {
 		testName := fmt.Sprintf("LexIntParser%d", index)
 		t.Run(testName, func(t *testing.T) {
-			parser := parser2.NewParser(tt.input)
-			expr := parser.ParseExpr()
+			parser, parserErr := parser2.NewParser(tt.input)
+			if parserErr != nil {
+				t.Fatalf("parser error: %s", parserErr)
+			}
+			expr, exprErr := parser.ParseExpr()
+			if exprErr != nil {
+				t.Fatalf("expression error: %s", parserErr)
+			}
 
 			exprVal, _ := expr.Eval()
 
 			if !exprVal.Equals(NewLiteral(tt.value)) {
-				t.Errorf("Incorrect eval. Expected %v got %v", tt.value, exprVal)
+				t.Fatalf("Incorrect eval. Expected %v got %v", tt.value, exprVal)
 			}
 
 		})
@@ -86,13 +95,19 @@ func Test_ParserIntSpacesValue(t *testing.T) {
 	for index, tt := range tests {
 		testName := fmt.Sprintf("LexIntSpacesParser%d", index)
 		t.Run(testName, func(t *testing.T) {
-			parser := parser2.NewParser(tt.input)
-			expr := parser.ParseExpr()
+			parser, parserErr := parser2.NewParser(tt.input)
+			if parserErr != nil {
+				t.Fatalf("parser error: %s", parserErr)
+			}
+			expr, exprErr := parser.ParseExpr()
+			if exprErr != nil {
+				t.Fatalf("expression error: %s", parserErr)
+			}
 
 			exprVal, _ := expr.Eval()
 
 			if !exprVal.Equals(NewLiteral(tt.value)) {
-				t.Errorf("Incorrect eval. Expected %v got %v", tt.value, exprVal)
+				t.Fatalf("Incorrect eval. Expected %v got %v", tt.value, exprVal)
 			}
 
 		})
@@ -113,13 +128,19 @@ func Test_ParserStringValue(t *testing.T) {
 	for index, tt := range tests {
 		testName := fmt.Sprintf("LexStringParser%d", index)
 		t.Run(testName, func(t *testing.T) {
-			parser := parser2.NewParser(tt.input)
-			expr := parser.ParseExpr()
+			parser, parserErr := parser2.NewParser(tt.input)
+			if parserErr != nil {
+				t.Fatalf("parser error: %s", parserErr)
+			}
+			expr, exprErr := parser.ParseExpr()
+			if exprErr != nil {
+				t.Fatalf("expression error: %s", parserErr)
+			}
 
 			exprVal, _ := expr.Eval()
 
 			if !exprVal.Equals(NewLiteral(tt.value)) {
-				t.Errorf("Incorrect eval. Expected %v got %v", tt.value, exprVal)
+				t.Fatalf("Incorrect eval. Expected %v got %v", tt.value, exprVal)
 			}
 
 		})
@@ -144,15 +165,75 @@ func Test_ParserBoolValue(t *testing.T) {
 	for index, tt := range tests {
 		testName := fmt.Sprintf("LexBoolParser%d", index)
 		t.Run(testName, func(t *testing.T) {
-			parser := parser2.NewParser(tt.input)
-			expr := parser.ParseExpr()
+			parser, parserErr := parser2.NewParser(tt.input)
+			if parserErr != nil {
+				t.Fatalf("parser error: %s", parserErr)
+			}
+			expr, exprErr := parser.ParseExpr()
+			if exprErr != nil {
+				t.Fatalf("expression error: %s", parserErr)
+			}
 
 			exprVal, _ := expr.Eval()
 
 			if !exprVal.Equals(NewLiteral(tt.value)) {
-				t.Errorf("Incorrect eval. Expected %v got %v", tt.value, exprVal)
+				t.Fatalf("Incorrect eval. Expected %v got %v", tt.value, exprVal)
 			}
 
+		})
+	}
+}
+
+func Test_intConditions(t *testing.T) {
+	var tests = []struct {
+		input         string
+		expectedValue bool
+	}{
+		{"1 && 1", true},
+		{"1 && 0", false},
+		{"0 && 0", false},
+		{"0 || 0", false},
+		{"0 || 1", true},
+	}
+
+	for index, tt := range tests {
+		testName := fmt.Sprintf("InvalidParsers%d", index)
+		t.Run(testName, func(t *testing.T) {
+			parser, parserErr := parser2.NewParser(tt.input)
+			if parserErr != nil {
+				t.Fatalf("parser error: %s", parserErr)
+			}
+			expr, exprErr := parser.ParseExpr()
+			if exprErr != nil {
+				t.Fatalf("expression error: %s", parserErr)
+			}
+
+			exprVal, _ := expr.Eval()
+
+			if !exprVal.Equals(NewLiteral(tt.expectedValue)) {
+				t.Fatalf("Incorrect eval. Expected %v got %v", tt.expectedValue, exprVal)
+			}
+		})
+	}
+}
+
+func Test_InvalidParser(t *testing.T) {
+	var tests = []string{
+		"(1+1",
+		"1+",
+		"+1",
+		"1+1)",
+		"1+1)+1",
+	}
+	for index, tt := range tests {
+		testName := fmt.Sprintf("InvalidParsers%d", index)
+		t.Run(testName, func(t *testing.T) {
+			parser, _ := parser2.NewParser(tt)
+			expr, exprErr := parser.ParseExpr()
+			if exprErr == nil {
+				t.Fatalf("Expected parsing error")
+			}
+			fmt.Println(expr)
 		})
 	}
 }

@@ -5,6 +5,8 @@ import (
 	. "compiler/components/conditions"
 	"compiler/components/literals"
 	. "compiler/components/operators"
+	"errors"
+	"fmt"
 	"strconv"
 )
 
@@ -18,8 +20,9 @@ type Parser struct {
 	pos    int
 }
 
-func NewParser(input string) *Parser {
-	return &Parser{Lex(input), 0}
+func NewParser(input string) (*Parser, error) {
+	tokens, err := Lex(input)
+	return &Parser{tokens, 0}, err
 }
 
 func (p *Parser) current() *Token {
@@ -34,104 +37,206 @@ func (p *Parser) advance() *Token {
 	return current
 }
 
-func (p *Parser) match(types ...TokenType) bool {
-	match := p.NonAdvMatch(types...)
+func (p *Parser) match(types ...TokenType) (bool, error) {
+	match, err := p.NonAdvMatch(types...)
 	if match {
 		p.advance()
 	}
-	return match
+	return match, err
 }
 
-func (p *Parser) NonAdvMatch(types ...TokenType) bool {
+func (p *Parser) NonAdvMatch(types ...TokenType) (bool, error) {
 	token := p.current()
 	if token == nil {
-		return false
+		return false, errors.New("No tokens left to match")
 	}
 	for _, t := range types {
 		if token.Type == t {
-			return true
+			return true, nil
 		}
 	}
-	return false
+	return false, nil
 }
 
-func (p *Parser) ParseExpr() Expression {
-	return p.parseTernary()
+func (p *Parser) ParseExpr() (Expression, error) {
+	expr, exprErr := p.parseTernary()
+	if current := p.current(); current != nil && current.Type != TokenEOF {
+		return expr, errors.New("Unparsed tokens remaining")
+	}
+	return expr, exprErr
 }
 
-func (p *Parser) parseTernary() Expression {
-	conditionExpr := p.parseOrExpr()
+func (p *Parser) parseTernary() (Expression, error) {
+	conditionExpr, conditionErr := p.parseOrExpr()
+	if conditionErr != nil {
+		return nil, conditionErr
+	}
 
-	if p.match(TokenQuestionMark) {
+	matchFound, questionMarkErr := p.match(TokenQuestionMark)
+	if questionMarkErr != nil {
+		return nil, questionMarkErr
+	}
+
+	if matchFound {
 		condition, ok := conditionExpr.(Condition)
 		if !ok {
-			panic("Invalid condition expression for ternary operation")
+			return nil, errors.New("Invalid condition expression for ternary operation")
 		}
 
-		trueExpr := p.ParseExpr()
-
-		if !p.match(TokenColon) {
-			panic("Expected ':' from ternary expression")
+		trueExpr, trueErr := p.ParseExpr()
+		if trueErr != nil {
+			return nil, trueErr
 		}
 
-		falseExpr := p.ParseExpr()
-		return &TernaryOperator{Left: trueExpr, Right: falseExpr, Condition: condition}
+		colonMatch, colonErr := p.match(TokenColon)
+		if colonErr != nil {
+			return nil, colonErr
+		}
+		if !colonMatch {
+			return nil, errors.New("Missing Colon in ternary expression")
+		}
+
+		falseExpr, falseErr := p.ParseExpr()
+		if falseErr != nil {
+			return nil, falseErr
+		}
+		return &TernaryOperator{Left: trueExpr, Right: falseExpr, Condition: condition}, nil
 	}
-	return conditionExpr
+	return conditionExpr, nil
 }
 
-func (p *Parser) parseOrExpr() Expression {
-	left := p.parseAndExpr()
+func (p *Parser) parseOrExpr() (Expression, error) {
+	left, leftErr := p.parseAndExpr()
+	if leftErr != nil {
+		return nil, leftErr
+	}
 
-	for p.match(TokenOr) {
-
-		right := p.parseAndExpr()
+	for {
+		orMatch, orErr := p.match(TokenOr)
+		if orErr != nil {
+			return nil, orErr
+		}
+		if !orMatch {
+			break
+		}
+		right, rightErr := p.parseAndExpr()
+		if rightErr != nil {
+			return nil, rightErr
+		}
 		left = &OrCondition{&BinaryCondition{left, right}}
 	}
 
-	return left
+	return left, nil
 }
-func (p *Parser) parseAndExpr() Expression {
-	left := p.parseEqualityExpr()
 
-	for p.match(TokenAnd) {
-		right := p.parseEqualityExpr()
+func (p *Parser) parseAndExpr() (Expression, error) {
+	left, leftErr := p.parseEqualityExpr()
+	if leftErr != nil {
+		return nil, leftErr
+	}
+
+	for {
+		andMatch, andErr := p.match(TokenAnd)
+		if andErr != nil {
+			return nil, andErr
+		}
+		if !andMatch {
+			break
+		}
+		right, rightErr := p.parseEqualityExpr()
+		if rightErr != nil {
+			return nil, rightErr
+		}
 		left = &AndCondition{&BinaryCondition{left, right}}
 	}
 
-	return left
+	return left, nil
 }
-func (p *Parser) parseEqualityExpr() Expression {
-	left := p.parseRelationalExpr()
-
-	if p.match(TokenEQ) {
-		right := p.parseRelationalExpr()
-		return &EqualCondition{&BinaryCondition{left, right}}
-	} else if p.match(TokenNeq) {
-		right := p.parseRelationalExpr()
-		return &NotEqualCondition{&BinaryCondition{left, right}}
+func (p *Parser) parseEqualityExpr() (Expression, error) {
+	left, leftErr := p.parseRelationalExpr()
+	if leftErr != nil {
+		return nil, leftErr
 	}
-	return left
-}
-func (p *Parser) parseRelationalExpr() Expression {
-	left := p.parseAdditive()
 
-	if p.match(TokenGT) {
-		right := p.parseAdditive()
-		return &GreaterThanCondition{&BinaryCondition{left, right}}
-	} else if p.match(TokenLT) {
-		right := p.parseRelationalExpr()
-		return &LessThanCondition{&BinaryCondition{left, right}}
+	eqMatch, eqErr := p.match(TokenEQ)
+	if eqErr != nil {
+		return nil, eqErr
 	}
-	return left
+	if eqMatch {
+		right, rightErr := p.parseRelationalExpr()
+		if rightErr != nil {
+			return nil, rightErr
+		}
+		return &EqualCondition{&BinaryCondition{left, right}}, nil
+	}
+	neqMatch, neqErr := p.match(TokenNeq)
+	if neqErr != nil {
+		return nil, neqErr
+	}
+	if neqMatch {
+		right, rightErr := p.parseRelationalExpr()
+		if rightErr != nil {
+			return nil, rightErr
+		}
+		return &NotEqualCondition{&BinaryCondition{left, right}}, nil
+	}
+	return left, nil
+}
+func (p *Parser) parseRelationalExpr() (Expression, error) {
+	left, leftErr := p.parseAdditive()
+	if leftErr != nil {
+		return nil, leftErr
+	}
+
+	gtMatch, gtErr := p.match(TokenGT)
+	if gtErr != nil {
+		return nil, gtErr
+	}
+	if gtMatch {
+		right, rightErr := p.parseAdditive()
+		if rightErr != nil {
+			return nil, rightErr
+		}
+
+		return &GreaterThanCondition{&BinaryCondition{left, right}}, nil
+	}
+
+	ltMatch, ltErr := p.match(TokenGT)
+	if ltErr != nil {
+		return nil, ltErr
+	}
+	if ltMatch {
+		right, rightErr := p.parseRelationalExpr()
+		if rightErr != nil {
+			return nil, rightErr
+		}
+
+		return &LessThanCondition{&BinaryCondition{left, right}}, nil
+	}
+	return left, nil
 }
 
-func (p *Parser) parseAdditive() Expression {
-	left := p.parseMultiplicative()
+func (p *Parser) parseAdditive() (Expression, error) {
+	left, leftErr := p.parseMultiplicative()
+	if leftErr != nil {
+		return nil, leftErr
+	}
 
-	for p.NonAdvMatch(TokenPlus, TokenMinus) {
+	for {
+		matchFound, matchErr := p.NonAdvMatch(TokenPlus, TokenMinus)
+		if matchErr != nil {
+			return nil, matchErr
+		}
+		if !matchFound {
+			break
+		}
+
 		currentOp := p.advance()
-		right := p.parseMultiplicative()
+		right, rightErr := p.parseMultiplicative()
+		if rightErr != nil {
+			return nil, rightErr
+		}
+
 		switch {
 		case currentOp == nil:
 			break
@@ -141,15 +246,29 @@ func (p *Parser) parseAdditive() Expression {
 			left = &BinaryOperator{left, right, SubOperator{}}
 		}
 	}
-	return left
+	return left, nil
 }
 
-func (p *Parser) parseMultiplicative() Expression {
-	left := p.parseUnary()
+func (p *Parser) parseMultiplicative() (Expression, error) {
+	left, leftErr := p.parseUnary()
+	if leftErr != nil {
+		return nil, leftErr
+	}
 
-	for p.NonAdvMatch(TokenMultiply, TokenDivide) {
+	for {
+		matchFound, matchErr := p.NonAdvMatch(TokenMultiply, TokenDivide)
+		if matchErr != nil {
+			return nil, matchErr
+		}
+		if !matchFound {
+			break
+		}
 		currentOp := p.advance()
-		right := p.parseUnary()
+		right, rightErr := p.parseUnary()
+		if rightErr != nil {
+			return nil, rightErr
+		}
+
 		switch {
 		case currentOp == nil:
 			break
@@ -159,56 +278,96 @@ func (p *Parser) parseMultiplicative() Expression {
 			left = &BinaryOperator{left, right, DivOperator{}}
 		}
 	}
-	return left
+	return left, nil
 }
-func (p *Parser) parseUnary() Expression {
-	if p.match(TokenNot) {
-		left := p.parseTerm()
-		return &NotCondition{&UnaryCondition{left}}
+func (p *Parser) parseUnary() (Expression, error) {
+	notMatch, notErr := p.match(TokenNot)
+	if notErr != nil {
+		return nil, notErr
+	}
+
+	if notMatch {
+		left, leftErr := p.parseTerm()
+		if leftErr != nil {
+			return nil, leftErr
+		}
+		return &NotCondition{&UnaryCondition{left}}, nil
 	}
 	return p.parseTerm()
 }
-func (p *Parser) parseTerm() Expression {
-	switch {
-	case p.match(TokenEOF):
-		panic("End of File token being parsed")
-	case p.match(TokenOpenParenthesis):
-		expr := p.ParseExpr()
+
+func (p *Parser) parseTerm() (Expression, error) {
+	eofMatch, eofErr := p.match(TokenEOF)
+	if eofErr != nil {
+		return nil, eofErr
+	}
+	if eofMatch {
+		return nil, errors.New("Unexpected EOF being parsed")
+	}
+
+	openParaMatch, openParaErr := p.match(TokenOpenParenthesis)
+	if openParaErr != nil {
+		return nil, openParaErr
+	}
+	if openParaMatch {
+		expr, exprErr := p.ParseExpr()
+		if exprErr != nil {
+			return nil, exprErr
+		}
 
 		current := p.current()
 		if current == nil || current.Type != TokenCloseParenthesis {
-			panic("Missing Closed Parenthesis")
+			return nil, errors.New("Missing Closed Parenthesis")
 		}
 		p.advance()
-		return expr
-	case p.NonAdvMatch(TokenNumber):
+		return expr, nil
+	}
+
+	numberMatch, numberErr := p.NonAdvMatch(TokenNumber)
+	if numberErr != nil {
+		return nil, numberErr
+	}
+	if numberMatch {
 		current := p.advance()
 		if current == nil {
-			panic("Nil token")
+			return nil, errors.New("Nil token")
 		}
 		intVal, err := strconv.Atoi(current.Value)
 		if err != nil {
-			panic("Invalid number")
+			return nil, errors.New(fmt.Sprintf(`Invalid number %v`, current.Value))
 		}
-		return literals.NewLiteral(intVal)
-	case p.NonAdvMatch(TokenBool):
+		return literals.NewLiteral(intVal), nil
+	}
+
+	boolMatch, boolErr := p.NonAdvMatch(TokenBool)
+	if boolErr != nil {
+		return nil, boolErr
+	}
+	if boolMatch {
 		current := p.advance()
 		if current == nil {
-			panic("Nil token")
+			return nil, errors.New("Nil token")
 		}
 		if current.Value == "true" {
-			return literals.NewLiteral(true)
+			return literals.NewLiteral(true), nil
 		} else if current.Value == "false" {
-			return literals.NewLiteral(false)
+			return literals.NewLiteral(false), nil
 		}
-		panic("Invalid bool value")
-	case p.NonAdvMatch(TokenString):
+		return nil, errors.New(fmt.Sprintf("Invalid bool value %v", current.Value))
+	}
+
+	stringMatch, stringErr := p.NonAdvMatch(TokenString)
+	if stringErr != nil {
+		return nil, stringErr
+	}
+	if stringMatch {
 		current := p.advance()
 		if current == nil {
-			panic("Nil token")
+			return nil, errors.New("Nil token")
 		}
-		return literals.NewLiteral(current.Value)
-	default:
-		panic("Unknown token " + p.current().Value)
+		return literals.NewLiteral(current.Value), nil
 	}
+
+	return nil, errors.New("Unknown token " + p.current().Value)
+
 }

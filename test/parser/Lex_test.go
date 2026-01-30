@@ -40,18 +40,22 @@ func Test_LexParser(t *testing.T) {
 	for index, tt := range tests {
 		testName := fmt.Sprintf("LexParser%d", index)
 		t.Run(testName, func(t *testing.T) {
-			tokens := Lex(tt.input)
+			tokens, err := Lex(tt.input)
+			if err != nil {
+				t.Fatalf("Lex error: %s", err)
+			}
+
 			if len(tokens) != len(tt.expectedTokens) {
-				t.Errorf("Incorrect number of tokens. Expected %d, got %d", len(tt.expectedTokens), len(tokens))
+				t.Fatalf("Incorrect number of tokens. Expected %d, got %d", len(tt.expectedTokens), len(tokens))
 			}
 
 			for i, token := range tokens {
 				expectedToken := tt.expectedTokens[i]
 				if token.Type != expectedToken.Type {
-					t.Errorf("Incorrect token type. Expected %v, got %v", expectedToken.Type, token.Type)
+					t.Fatalf("Incorrect token type. Expected %v, got %v", expectedToken.Type, token.Type)
 				}
 				if token.Value != expectedToken.Value {
-					t.Errorf("Incorrect token value. Expected %v, got %v", expectedToken.Value, token.Value)
+					t.Fatalf("Incorrect token value. Expected %v, got %v", expectedToken.Value, token.Value)
 				}
 			}
 		})
@@ -74,19 +78,22 @@ func Test_LexLiteralParser(t *testing.T) {
 	for index, tt := range tests {
 		testName := fmt.Sprintf("LexLiteralParser%d", index)
 		t.Run(testName, func(t *testing.T) {
-			token, _ := LexLiteral(tt.input, 0)
+			token, _, err := LexLiteral(tt.input, 0)
+			if err != nil {
+				t.Fatalf("LexLiteral error: %s", err)
+			}
 
 			if token == nil {
-				t.Errorf("Token was nil")
+				t.Fatalf("Token was nil")
 				return
 			}
 
 			expectedToken := tt.expectedToken
 			if token.Type != expectedToken.Type {
-				t.Errorf("Incorrect token type. Expected %v, got %v", expectedToken.Type, token.Type)
+				t.Fatalf("Incorrect token type. Expected %v, got %v", expectedToken.Type, token.Type)
 			}
 			if token.Value != expectedToken.Value {
-				t.Errorf("Incorrect token value. Expected %v, got %v", expectedToken.Value, token.Value)
+				t.Fatalf("Incorrect token value. Expected %v, got %v", expectedToken.Value, token.Value)
 			}
 		})
 	}
