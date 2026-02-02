@@ -1,6 +1,8 @@
 package literals
 
-import "compiler/components/ast"
+import (
+	"compiler/src/components/ast"
+)
 
 func NewLiteral(v interface{}) ast.Literal {
 	switch v.(type) {

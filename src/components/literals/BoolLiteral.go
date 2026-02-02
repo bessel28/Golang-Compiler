@@ -1,7 +1,7 @@
 package literals
 
 import (
-	"compiler/components/ast"
+	"compiler/src/components/ast"
 	"fmt"
 )
 

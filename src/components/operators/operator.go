@@ -1,7 +1,7 @@
 package operators
 
 import (
-	. "compiler/components/ast"
+	. "compiler/src/components/ast"
 )
 
 type BinaryOperator struct {

@@ -1,10 +1,10 @@
-package parser
+package parsing
 
 import (
-	. "compiler/components/ast"
-	. "compiler/components/literals"
-	. "compiler/components/operators"
-	parser2 "compiler/parser"
+	. "compiler/src/components/ast"
+	. "compiler/src/components/literals"
+	. "compiler/src/components/operators"
+	. "compiler/src/parser"
 	"fmt"
 	"reflect"
 	"testing"
@@ -22,7 +22,7 @@ func Test_Parser(t *testing.T) {
 	for index, tt := range tests {
 		testName := fmt.Sprintf("LexParser%d", index)
 		t.Run(testName, func(t *testing.T) {
-			parser, parserErr := parser2.NewParser(tt.input)
+			parser, parserErr := NewParser(tt.input)
 			if parserErr != nil {
 				t.Fatalf("parser error: %s", parserErr)
 			}
@@ -61,13 +61,13 @@ func Test_ParserIntValue(t *testing.T) {
 	for index, tt := range tests {
 		testName := fmt.Sprintf("LexIntParser%d", index)
 		t.Run(testName, func(t *testing.T) {
-			parser, parserErr := parser2.NewParser(tt.input)
+			parser, parserErr := NewParser(tt.input)
 			if parserErr != nil {
-				t.Fatalf("parser error: %s", parserErr)
+				t.Fatalf("parser error: %v", parserErr)
 			}
 			expr, exprErr := parser.ParseExpr()
 			if exprErr != nil {
-				t.Fatalf("expression error: %s", parserErr)
+				t.Fatalf("expression error: %v", exprErr)
 			}
 
 			exprVal, _ := expr.Eval()
@@ -95,13 +95,13 @@ func Test_ParserIntSpacesValue(t *testing.T) {
 	for index, tt := range tests {
 		testName := fmt.Sprintf("LexIntSpacesParser%d", index)
 		t.Run(testName, func(t *testing.T) {
-			parser, parserErr := parser2.NewParser(tt.input)
+			parser, parserErr := NewParser(tt.input)
 			if parserErr != nil {
-				t.Fatalf("parser error: %s", parserErr)
+				t.Fatalf("parser error: %v", parserErr)
 			}
 			expr, exprErr := parser.ParseExpr()
 			if exprErr != nil {
-				t.Fatalf("expression error: %s", parserErr)
+				t.Fatalf("expression error: %v", exprErr)
 			}
 
 			exprVal, _ := expr.Eval()
@@ -128,13 +128,13 @@ func Test_ParserStringValue(t *testing.T) {
 	for index, tt := range tests {
 		testName := fmt.Sprintf("LexStringParser%d", index)
 		t.Run(testName, func(t *testing.T) {
-			parser, parserErr := parser2.NewParser(tt.input)
+			parser, parserErr := NewParser(tt.input)
 			if parserErr != nil {
-				t.Fatalf("parser error: %s", parserErr)
+				t.Fatalf("parser error: %v", parserErr)
 			}
 			expr, exprErr := parser.ParseExpr()
 			if exprErr != nil {
-				t.Fatalf("expression error: %s", parserErr)
+				t.Fatalf("expression error: %v", exprErr)
 			}
 
 			exprVal, _ := expr.Eval()
@@ -165,13 +165,13 @@ func Test_ParserBoolValue(t *testing.T) {
 	for index, tt := range tests {
 		testName := fmt.Sprintf("LexBoolParser%d", index)
 		t.Run(testName, func(t *testing.T) {
-			parser, parserErr := parser2.NewParser(tt.input)
+			parser, parserErr := NewParser(tt.input)
 			if parserErr != nil {
-				t.Fatalf("parser error: %s", parserErr)
+				t.Fatalf("parser error: %v", parserErr)
 			}
 			expr, exprErr := parser.ParseExpr()
 			if exprErr != nil {
-				t.Fatalf("expression error: %s", parserErr)
+				t.Fatalf("expression error: %v", parserErr)
 			}
 
 			exprVal, _ := expr.Eval()
@@ -199,13 +199,13 @@ func Test_intConditions(t *testing.T) {
 	for index, tt := range tests {
 		testName := fmt.Sprintf("InvalidParsers%d", index)
 		t.Run(testName, func(t *testing.T) {
-			parser, parserErr := parser2.NewParser(tt.input)
+			parser, parserErr := NewParser(tt.input)
 			if parserErr != nil {
-				t.Fatalf("parser error: %s", parserErr)
+				t.Fatalf("parser error: %v", parserErr)
 			}
 			expr, exprErr := parser.ParseExpr()
 			if exprErr != nil {
-				t.Fatalf("expression error: %s", parserErr)
+				t.Fatalf("expression error: %v", parserErr)
 			}
 
 			exprVal, _ := expr.Eval()
@@ -228,7 +228,7 @@ func Test_InvalidParser(t *testing.T) {
 	for index, tt := range tests {
 		testName := fmt.Sprintf("InvalidParsers%d", index)
 		t.Run(testName, func(t *testing.T) {
-			parser, _ := parser2.NewParser(tt)
+			parser, _ := NewParser(tt)
 			expr, exprErr := parser.ParseExpr()
 			if exprErr == nil {
 				t.Fatalf("Expected parsing error")

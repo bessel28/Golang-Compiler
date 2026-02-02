@@ -1,7 +1,7 @@
-package parser
+package parsing
 
 import (
-	. "compiler/parser"
+	. "compiler/src/parser"
 	"fmt"
 	"testing"
 )

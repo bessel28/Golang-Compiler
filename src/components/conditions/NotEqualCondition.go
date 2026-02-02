@@ -1,8 +1,8 @@
 package conditions
 
 import (
-	. "compiler/components/ast"
-	. "compiler/components/literals"
+	. "compiler/src/components/ast"
+	. "compiler/src/components/literals"
 )
 
 type NotEqualCondition struct {

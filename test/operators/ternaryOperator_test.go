@@ -1,10 +1,10 @@
 package operators
 
 import (
-	. "compiler/components/ast"
-	. "compiler/components/conditions"
-	. "compiler/components/literals"
-	. "compiler/components/operators"
+	. "compiler/src/components/ast"
+	. "compiler/src/components/conditions"
+	. "compiler/src/components/literals"
+	. "compiler/src/components/operators"
 	"fmt"
 	"testing"
 )

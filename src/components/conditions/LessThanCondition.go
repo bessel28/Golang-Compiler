@@ -1,21 +1,21 @@
 package conditions
 
 import (
-	. "compiler/components/ast"
-	. "compiler/components/literals"
+	. "compiler/src/components/ast"
+	. "compiler/src/components/literals"
 	"errors"
 )
 
-type GreaterThanCondition struct {
+type LessThanCondition struct {
 	*BinaryCondition
 }
 
-func (e *GreaterThanCondition) Eval() (Literal, error) {
+func (e *LessThanCondition) Eval() (Literal, error) {
 	check, err := e.Check()
 	return &BoolLiteral{check}, err
 }
 
-func (e *GreaterThanCondition) Check() (bool, error) {
+func (e *LessThanCondition) Check() (bool, error) {
 	leftLiteral, err := e.Left.Eval()
 	rightLiteral, err2 := e.Right.Eval()
 
@@ -33,9 +33,9 @@ func (e *GreaterThanCondition) Check() (bool, error) {
 
 	switch leftLiteral.Kind() {
 	case IntKind:
-		return leftLiteral.(*IntLiteral).Value > rightLiteral.(*IntLiteral).Value, nil
+		return leftLiteral.(*IntLiteral).Value < rightLiteral.(*IntLiteral).Value, nil
 	case StringKind:
-		return leftLiteral.(*StringLiteral).Value > rightLiteral.(*StringLiteral).Value, nil
+		return leftLiteral.(*StringLiteral).Value < rightLiteral.(*StringLiteral).Value, nil
 	default:
 		return false, errors.New("unhandled default case")
 	}

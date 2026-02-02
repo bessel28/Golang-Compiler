@@ -1,9 +1,9 @@
 package conditions
 
 import (
-	. "compiler/components/ast"
-	. "compiler/components/conditions"
-	. "compiler/components/literals"
+	. "compiler/src/components/ast"
+	. "compiler/src/components/conditions"
+	. "compiler/src/components/literals"
 	"fmt"
 	"testing"
 )

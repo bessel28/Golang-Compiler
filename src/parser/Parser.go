@@ -1,18 +1,31 @@
 package parser
 
 import (
-	. "compiler/components/ast"
-	. "compiler/components/conditions"
-	"compiler/components/literals"
-	. "compiler/components/operators"
+	. "compiler/src/components/ast"
+	. "compiler/src/components/conditions"
+	"compiler/src/components/literals"
+	. "compiler/src/components/operators"
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 )
 
 type Token struct {
 	Type  TokenType
 	Value string
+}
+
+func mapTokens(tokens []Token) []string {
+	var stringVals = make([]string, len(tokens))
+	for i, t := range tokens {
+		if t.Type == TokenEOF {
+			stringVals[i] = "-EOF-"
+			continue
+		}
+		stringVals[i] = t.Value
+	}
+	return stringVals
 }
 
 type Parser struct {
@@ -38,14 +51,14 @@ func (p *Parser) advance() *Token {
 }
 
 func (p *Parser) match(types ...TokenType) (bool, error) {
-	match, err := p.NonAdvMatch(types...)
+	match, err := p.nonAdvMatch(types...)
 	if match {
 		p.advance()
 	}
 	return match, err
 }
 
-func (p *Parser) NonAdvMatch(types ...TokenType) (bool, error) {
+func (p *Parser) nonAdvMatch(types ...TokenType) (bool, error) {
 	token := p.current()
 	if token == nil {
 		return false, errors.New("No tokens left to match")
@@ -58,10 +71,14 @@ func (p *Parser) NonAdvMatch(types ...TokenType) (bool, error) {
 	return false, nil
 }
 
+// ParseExpr Attempts to parse all the tokens in a Parser's tokens field.
+// NOTE : This function expects ALL tokens to be parsed and will return an error if there are unparsed tokens remaining
 func (p *Parser) ParseExpr() (Expression, error) {
 	expr, exprErr := p.parseTernary()
 	if current := p.current(); current != nil && current.Type != TokenEOF {
-		return expr, errors.New("Unparsed tokens remaining")
+		unparsedTokenDebug := fmt.Sprintf("Current Token: %+v\nTotal tokens remaining: %v\n%v",
+			*current, len(p.tokens)-p.pos, strings.Join(mapTokens(p.tokens[p.pos:]), ", "))
+		return expr, errors.New(fmt.Sprintf("Unparsed tokens remaining: %v", unparsedTokenDebug))
 	}
 	return expr, exprErr
 }
@@ -83,7 +100,7 @@ func (p *Parser) parseTernary() (Expression, error) {
 			return nil, errors.New("Invalid condition expression for ternary operation")
 		}
 
-		trueExpr, trueErr := p.ParseExpr()
+		trueExpr, trueErr := p.parseTernary()
 		if trueErr != nil {
 			return nil, trueErr
 		}
@@ -96,7 +113,7 @@ func (p *Parser) parseTernary() (Expression, error) {
 			return nil, errors.New("Missing Colon in ternary expression")
 		}
 
-		falseExpr, falseErr := p.ParseExpr()
+		falseExpr, falseErr := p.parseTernary()
 		if falseErr != nil {
 			return nil, falseErr
 		}
@@ -223,7 +240,7 @@ func (p *Parser) parseAdditive() (Expression, error) {
 	}
 
 	for {
-		matchFound, matchErr := p.NonAdvMatch(TokenPlus, TokenMinus)
+		matchFound, matchErr := p.nonAdvMatch(TokenPlus, TokenMinus)
 		if matchErr != nil {
 			return nil, matchErr
 		}
@@ -256,7 +273,7 @@ func (p *Parser) parseMultiplicative() (Expression, error) {
 	}
 
 	for {
-		matchFound, matchErr := p.NonAdvMatch(TokenMultiply, TokenDivide)
+		matchFound, matchErr := p.nonAdvMatch(TokenMultiply, TokenDivide)
 		if matchErr != nil {
 			return nil, matchErr
 		}
@@ -310,20 +327,22 @@ func (p *Parser) parseTerm() (Expression, error) {
 		return nil, openParaErr
 	}
 	if openParaMatch {
-		expr, exprErr := p.ParseExpr()
+		expr, exprErr := p.parseTernary()
 		if exprErr != nil {
 			return nil, exprErr
 		}
 
-		current := p.current()
-		if current == nil || current.Type != TokenCloseParenthesis {
+		closeParaMatch, closeParaErr := p.match(TokenCloseParenthesis)
+		if closeParaErr == nil {
+			return nil, closeParaErr
+		}
+		if !closeParaMatch {
 			return nil, errors.New("Missing Closed Parenthesis")
 		}
-		p.advance()
 		return expr, nil
 	}
 
-	numberMatch, numberErr := p.NonAdvMatch(TokenNumber)
+	numberMatch, numberErr := p.nonAdvMatch(TokenNumber)
 	if numberErr != nil {
 		return nil, numberErr
 	}
@@ -339,7 +358,7 @@ func (p *Parser) parseTerm() (Expression, error) {
 		return literals.NewLiteral(intVal), nil
 	}
 
-	boolMatch, boolErr := p.NonAdvMatch(TokenBool)
+	boolMatch, boolErr := p.nonAdvMatch(TokenBool)
 	if boolErr != nil {
 		return nil, boolErr
 	}
@@ -356,7 +375,7 @@ func (p *Parser) parseTerm() (Expression, error) {
 		return nil, errors.New(fmt.Sprintf("Invalid bool value %v", current.Value))
 	}
 
-	stringMatch, stringErr := p.NonAdvMatch(TokenString)
+	stringMatch, stringErr := p.nonAdvMatch(TokenString)
 	if stringErr != nil {
 		return nil, stringErr
 	}

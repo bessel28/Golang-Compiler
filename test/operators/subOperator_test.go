@@ -1,8 +1,8 @@
 package operators
 
 import (
-	. "compiler/components/literals"
-	. "compiler/components/operators"
+	. "compiler/src/components/literals"
+	. "compiler/src/components/operators"
 	"fmt"
 	"testing"
 )
