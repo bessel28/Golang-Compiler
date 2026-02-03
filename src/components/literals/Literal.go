@@ -1,13 +1,5 @@
 package literals
 
-type ValueKind int
-
-const (
-	IntKind ValueKind = iota
-	StringKind
-	BoolKind
-)
-
 type Stringer interface {
 	String() string
 }

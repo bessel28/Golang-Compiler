@@ -14,15 +14,15 @@ func TestLessThanCondition(t *testing.T) {
 		val1, val2 Literal
 		res        bool
 	}{
-		{NewLiteral(1), NewLiteral(1), false},
-		{NewLiteral(1), NewLiteral(2), true},
-		{NewLiteral(2), NewLiteral(1), false},
-		{NewLiteral("A"), NewLiteral("A"), false},
-		{NewLiteral("B"), NewLiteral("A"), false},
-		{NewLiteral("A"), NewLiteral("B"), true},
+		{NewLiteral(1, nil), NewLiteral(1, nil), false},
+		{NewLiteral(1, nil), NewLiteral(2, nil), true},
+		{NewLiteral(2, nil), NewLiteral(1, nil), false},
+		{NewLiteral("A", nil), NewLiteral("A", nil), false},
+		{NewLiteral("B", nil), NewLiteral("A", nil), false},
+		{NewLiteral("A", nil), NewLiteral("B", nil), true},
 	}
 
-	env := Environment{}
+	env := RuntimeEnvironment{}
 
 	for index, tt := range tests {
 		testName := fmt.Sprintf("LessThanCondition%d", index)
@@ -51,13 +51,13 @@ func TestInvalidLessThanCondition(t *testing.T) {
 		val1, val2 Literal
 	}{
 
-		{NewLiteral(1), NewLiteral("1")},
-		{NewLiteral(true), NewLiteral(true)},
-		{NewLiteral(true), NewLiteral(false)},
-		{NewLiteral(true), NewLiteral(1)},
+		{NewLiteral(1, nil), NewLiteral("1", nil)},
+		{NewLiteral(true, nil), NewLiteral(true, nil)},
+		{NewLiteral(true, nil), NewLiteral(false, nil)},
+		{NewLiteral(true, nil), NewLiteral(1, nil)},
 	}
 
-	env := Environment{}
+	env := RuntimeEnvironment{}
 
 	for index, tt := range tests {
 		testName := fmt.Sprintf("InvalidLessThanCondition%d", index)

@@ -32,7 +32,7 @@ func TestSubOperator(t *testing.T) {
 			}
 
 			expectedAnswer := &IntLiteral{Value: tt.res}
-			EvaluateTest(t, &binOperator1, &Environment{}, expectedAnswer)
+			EvaluateTest(t, &binOperator1, &RuntimeEnvironment{}, expectedAnswer)
 		})
 	}
 }
@@ -50,12 +50,12 @@ func TestStringSubOperator(t *testing.T) {
 		testName := fmt.Sprintf("StringSubOperator%d", index)
 		t.Run(testName, func(t *testing.T) {
 			binOperator := BinaryExpr{
-				Left:  NewLiteral(tt.a),
-				Right: NewLiteral(tt.b),
+				Left:  NewLiteral(tt.a, nil),
+				Right: NewLiteral(tt.b, nil),
 				Op:    SubOperator{},
 			}
 
-			_, err := Eval(&binOperator, &Environment{})
+			_, err := Eval(&binOperator, &RuntimeEnvironment{})
 			if err == nil {
 				t.Errorf("Expected string Subiplication to return an error")
 			}

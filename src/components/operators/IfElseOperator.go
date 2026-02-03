@@ -1,6 +1,8 @@
 package operators
 
-import . "compiler/src/components/literals"
+import (
+	. "compiler/src/components/literals"
+)
 
 type IfElseOperator struct{}
 

@@ -33,6 +33,7 @@ const (
 	TokenAnd
 	TokenNot
 	TokenIdentifier
+	TokenComma
 )
 
 var (
@@ -56,6 +57,7 @@ var (
 	LexerAnd              = LexerData{TokenAnd, simpleLexer("&&")}
 	LexerNot              = LexerData{TokenNot, simpleLexer("!")}
 	LexerIdentifier       = LexerData{TokenIdentifier, lexIdentifier}
+	LexerComma            = LexerData{TokenIdentifier, simpleLexer(",")}
 )
 
 var (

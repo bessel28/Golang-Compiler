@@ -1,33 +1,59 @@
 package runtime
 
-//
-//func (s *BlockStatement) Execute(env *Environment) error {
-//	local := env.NewChild()
-//	for _, stmt := range s.Statements {
-//		if err := stmt.Execute(local); err != nil {
-//			return err
-//		}
-//	}
-//	return nil
-//}
+import (
+	"compiler/src/components/ast"
+	. "compiler/src/components/statements"
+	"errors"
+	"fmt"
+)
 
-//func (e ExpressionStatement) Execute(env *Environment) error {
-//_, err := e.Expression.Eval(env)
-//return err
-//}
+type Executor struct {
+	Statements []ast.Statement
+	Env        *RuntimeEnvironment
+	LinePtr    int
+}
 
-//func (s *VariableAssignmentStatement) Execute(env *runtime.Environment) error {
-//val, err := s.Value.Eval(env)
-//if err != nil {
-//return err
-//}
-//return env.Assign(s.Name, &val)
-//}
-//
-//func (s *VariableDeclarationStatement) Execute(env *runtime.Environment) error {
-//val, err := s.Value.Eval(env)
-//if err != nil {
-//return err
-//}
-//return env.Define(s.Name, &val)
-//}
+func (e *Executor) Execute() (interface{}, error) {
+	for ; e.LinePtr < len(e.Statements); e.LinePtr++ {
+		_, err := executeStatement(e.Statements[e.LinePtr], e.Env)
+		if err != nil {
+			return nil, errors.New(fmt.Sprintf("Error executing statement %d: %v", e.LinePtr, err))
+		}
+	}
+	return nil, nil
+}
+
+func executeStatement(statement ast.Statement, env *RuntimeEnvironment) (interface{}, error) {
+	return nil, nil
+}
+
+func ExecuteBlock(block ast.BlockStatement, env *RuntimeEnvironment) error {
+	local := env.NewChild()
+	for _, stmt := range block.Statements {
+		if _, err := executeStatement(stmt, local); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func ExecuteExpression(expression ExpressionStatement, env *RuntimeEnvironment) error {
+	_, err := Eval(expression.Expression, env)
+	return err
+}
+
+func ExecuteVariableAssignment(varAssignment VariableAssignmentStatement, env *RuntimeEnvironment) error {
+	val, err := Eval(varAssignment.Value, env)
+	if err != nil {
+		return err
+	}
+	return env.Assign(varAssignment.Name, &val)
+}
+
+func ExecuteVariableDeclaration(varDeclaration VariableDeclarationStatement, env *RuntimeEnvironment) error {
+	val, err := Eval(varDeclaration.Value, env)
+	if err != nil {
+		return err
+	}
+	return env.Define(varDeclaration.Name, &val)
+}

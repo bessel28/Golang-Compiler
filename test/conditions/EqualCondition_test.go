@@ -14,16 +14,16 @@ func TestEqualCondition(t *testing.T) {
 		val1, val2 Literal
 		res        bool
 	}{
-		{NewLiteral(1), NewLiteral(1), true},
-		{NewLiteral(1), NewLiteral(2), false},
-		{NewLiteral(1), NewLiteral("1"), false},
-		{NewLiteral("1"), NewLiteral("1"), true},
-		{NewLiteral(true), NewLiteral(true), true},
-		{NewLiteral(true), NewLiteral(false), false},
-		{NewLiteral(true), NewLiteral(1), false},
+		{NewLiteral(1, nil), NewLiteral(1, nil), true},
+		{NewLiteral(1, nil), NewLiteral(2, nil), false},
+		{NewLiteral(1, nil), NewLiteral("1", nil), false},
+		{NewLiteral("1", nil), NewLiteral("1", nil), true},
+		{NewLiteral(true, nil), NewLiteral(true, nil), true},
+		{NewLiteral(true, nil), NewLiteral(false, nil), false},
+		{NewLiteral(true, nil), NewLiteral(1, nil), false},
 	}
 
-	env := Environment{}
+	env := RuntimeEnvironment{}
 
 	for index, tt := range tests {
 		testName := fmt.Sprintf("EqualCondition%d", index)

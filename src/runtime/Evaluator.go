@@ -9,7 +9,7 @@ import (
 
 type Evaluator struct{}
 
-func Eval(node Node, env *Environment) (Literal, error) {
+func Eval(node Node, env *RuntimeEnvironment) (Literal, error) {
 	if _, ok := node.(Expression); ok {
 		nodeExpr := node.(Expression)
 		eval, evalErr := EvalExpr(&nodeExpr, env)
@@ -19,7 +19,7 @@ func Eval(node Node, env *Environment) (Literal, error) {
 
 }
 
-func EvalExpr(exprNode *Expression, env *Environment) (Literal, error) {
+func EvalExpr(exprNode *Expression, env *RuntimeEnvironment) (Literal, error) {
 	switch (*exprNode).(type) {
 	case Literal:
 		litExpr := (*exprNode).(Literal)
@@ -51,7 +51,7 @@ func EvalExpr(exprNode *Expression, env *Environment) (Literal, error) {
 	return nil, errors.New(fmt.Sprintf("Unknown Expression Type: %T", exprNode))
 }
 
-func EvalCondition(condNode *Condition, env *Environment) (*BoolLiteral, error) {
+func EvalCondition(condNode *Condition, env *RuntimeEnvironment) (*BoolLiteral, error) {
 	switch (*condNode).(type) {
 	case *BoolLiteral:
 		return (*condNode).(*BoolLiteral), nil
@@ -73,7 +73,7 @@ func EvalCondition(condNode *Condition, env *Environment) (*BoolLiteral, error) 
 	return nil, errors.New(fmt.Sprintf("Unknown Condition Type: %T", condNode))
 }
 
-func evalUnary[T Literal](op *UnaryOperator[T], arg *Expression, env *Environment) (*T, error) {
+func evalUnary[T Literal](op *UnaryOperator[T], arg *Expression, env *RuntimeEnvironment) (*T, error) {
 	argExpr, err := EvalExpr(arg, env)
 	if err != nil {
 		return nil, err
@@ -85,7 +85,7 @@ func evalUnary[T Literal](op *UnaryOperator[T], arg *Expression, env *Environmen
 	return &evalVal, nil
 }
 
-func evalBinary[T Literal](op *BinaryOperator[T], left *Expression, right *Expression, env *Environment) (*T, error) {
+func evalBinary[T Literal](op *BinaryOperator[T], left *Expression, right *Expression, env *RuntimeEnvironment) (*T, error) {
 	leftEval, err := EvalExpr(left, env)
 	if err != nil {
 		return nil, err
@@ -101,7 +101,7 @@ func evalBinary[T Literal](op *BinaryOperator[T], left *Expression, right *Expre
 	return &evalVal, nil
 }
 
-func evalTernary[T Literal](op *TernaryOperator[T], condition *Condition, left *Expression, right *Expression, env *Environment) (*T, error) {
+func evalTernary[T Literal](op *TernaryOperator[T], condition *Condition, left *Expression, right *Expression, env *RuntimeEnvironment) (*T, error) {
 	condEval, err := EvalCondition(condition, env)
 	if err != nil {
 		return nil, err

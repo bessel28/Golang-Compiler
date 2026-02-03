@@ -7,42 +7,42 @@ import (
 	"fmt"
 )
 
-type Environment struct {
-	variables map[string]*Literal
-	functions map[string]*Function
-	parent    *Environment
+type RuntimeEnvironment struct {
+	Variables map[string]*Literal
+	Functions map[string]*FunctionSignature
+	Parent    *RuntimeEnvironment
 }
 
-func (env *Environment) Define(name string, value *Literal) error {
-	if _, exists := env.variables[name]; exists {
+func (env *RuntimeEnvironment) Define(name string, value *Literal) error {
+	if _, exists := env.Variables[name]; exists {
 		return errors.New(fmt.Sprintf("Code Error: variable %v exists", name))
 	}
-	env.variables[name] = value
+	env.Variables[name] = value
 	return nil
 }
 
-func (env *Environment) Assign(name string, value *Literal) error {
-	if _, exists := env.variables[name]; !exists {
+func (env *RuntimeEnvironment) Assign(name string, value *Literal) error {
+	if _, exists := env.Variables[name]; !exists {
 		return errors.New(fmt.Sprintf("Code Error: variable %v does not exist", name))
 	}
-	env.variables[name] = value
+	env.Variables[name] = value
 	return nil
 }
-func (env *Environment) Get(name string) (*Literal, error) {
-	if _, exists := env.variables[name]; !exists {
-		if env.parent != nil {
-			return env.parent.Get(name)
+func (env *RuntimeEnvironment) Get(name string) (*Literal, error) {
+	if _, exists := env.Variables[name]; !exists {
+		if env.Parent != nil {
+			return env.Parent.Get(name)
 		}
 		return nil, errors.New(fmt.Sprintf("Code Error: variable %v does not exist", name))
 	}
-	value := env.variables[name]
+	value := env.Variables[name]
 	return value, nil
 }
 
-func (env *Environment) NewChild() *Environment {
-	return &Environment{
-		parent:    env,
-		variables: make(map[string]*Literal),
-		functions: make(map[string]*Function),
+func (env *RuntimeEnvironment) NewChild() *RuntimeEnvironment {
+	return &RuntimeEnvironment{
+		Parent:    env,
+		Variables: make(map[string]*Literal),
+		Functions: make(map[string]*FunctionSignature),
 	}
 }

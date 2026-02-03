@@ -3,7 +3,8 @@ package parser
 import (
 	. "compiler/src/components/ast"
 	. "compiler/src/components/conditions"
-	"compiler/src/components/literals"
+	. "compiler/src/components/functions"
+	. "compiler/src/components/literals"
 	. "compiler/src/components/operators"
 	"errors"
 	"fmt"
@@ -30,17 +31,17 @@ func mapTokens(tokens []Token) []string {
 }
 
 type Parser struct {
-	tokens      []Token
+	Tokens      []Token
 	pos         int
-	varSymbols  *SymbolTable
-	funcSymbols *SymbolTable
+	VarSymbols  *VarSymbolTable
+	FuncSymbols *FuncSymbolTable
 }
 
 func (p *Parser) current() *Token {
-	if p.pos >= len(p.tokens) {
+	if p.pos >= len(p.Tokens) {
 		return nil
 	}
-	return &p.tokens[p.pos]
+	return &p.Tokens[p.pos]
 }
 func (p *Parser) advance() *Token {
 	current := p.current()
@@ -59,7 +60,7 @@ func (p *Parser) match(types ...TokenType) (bool, error) {
 func (p *Parser) nonAdvMatch(types ...TokenType) (bool, error) {
 	token := p.current()
 	if token == nil {
-		return false, errors.New("No tokens left to match")
+		return false, errors.New("No Tokens left to match")
 	}
 	for _, t := range types {
 		if token.Type == t {
@@ -71,17 +72,20 @@ func (p *Parser) nonAdvMatch(types ...TokenType) (bool, error) {
 
 func NewParser(input string) (*Parser, error) {
 	tokens, err := Lex(input)
-	return &Parser{tokens, 0, &SymbolTable{}, &SymbolTable{}}, err
+	return &Parser{tokens, 0, &VarSymbolTable{}, &FuncSymbolTable{}}, err
 }
 
-// ParseExpr Attempts to parse all the tokens in a Parser's tokens field.
-// NOTE : This function expects ALL tokens to be parsed and will return an error if there are unparsed tokens remaining
+// ParseExpr Attempts to parse all the Tokens in a Parser's Tokens field.
+// NOTE : This function expects ALL Tokens to be parsed and will return an error if there are unparsed Tokens remaining
 func (p *Parser) ParseExpr() (Expression, error) {
 	expr, exprErr := p.parseTernary()
+	if exprErr != nil {
+		return nil, exprErr
+	}
 	if current := p.current(); current != nil && current.Type != TokenEOF {
-		unparsedTokenDebug := fmt.Sprintf("Current Token: %+v\nTotal tokens remaining: %v\n%v",
-			*current, len(p.tokens)-p.pos, strings.Join(mapTokens(p.tokens[p.pos:]), ", "))
-		return expr, errors.New(fmt.Sprintf("Unparsed tokens remaining: %v", unparsedTokenDebug))
+		unparsedTokenDebug := fmt.Sprintf("Current Token: %+v\nTotal Tokens remaining: %v\n%v",
+			*current, len(p.Tokens)-p.pos, strings.Join(mapTokens(p.Tokens[p.pos:]), ", "))
+		return expr, errors.New(fmt.Sprintf("Unparsed Tokens remaining: %v", unparsedTokenDebug))
 	}
 	return expr, exprErr
 }
@@ -300,6 +304,7 @@ func (p *Parser) parseMultiplicative() (Expression, error) {
 	}
 	return left, nil
 }
+
 func (p *Parser) parseUnary() (Expression, error) {
 	notMatch, notErr := p.match(TokenNot)
 	if notErr != nil {
@@ -307,16 +312,87 @@ func (p *Parser) parseUnary() (Expression, error) {
 	}
 
 	if notMatch {
-		left, leftErr := p.parseTerm()
+		left, leftErr := p.parseCall()
 		if leftErr != nil {
 			return nil, leftErr
 		}
 		return &UnaryCondition{NotCondition{}, left}, nil
 	}
-	return p.parseTerm()
+	return p.parseCall()
+}
+
+func (p *Parser) parseCall() (Expression, error) {
+	start := p.pos
+	expr, exprErr := p.parseTerm()
+	if exprErr != nil {
+		return nil, exprErr
+	}
+
+	openParenthesis, openParaErr := p.match(TokenOpenParenthesis)
+	if openParaErr != nil {
+		return nil, openParaErr
+	}
+	if openParenthesis {
+		variableExpr, variableType := expr.(*VariableExpr)
+		if variableType && variableExpr.Type != FunctionRefKind {
+			return nil, errors.New(fmt.Sprintf("Variable %v is not a callable type", variableExpr.Name))
+		}
+		functionExpr, functionType := expr.(*FunctionExpr)
+		if !functionType && !variableType {
+			return nil, errors.New("Uncallable Expression")
+		}
+
+		var function *FunctionSignature
+		if variableType {
+			function = p.FuncSymbols.Get(variableExpr.Name)
+		} else {
+			function = p.FuncSymbols.Get(functionExpr.Name)
+		}
+
+		var args []Expression
+
+		closeParenthesis, closeParaErr := p.nonAdvMatch(TokenCloseParenthesis)
+		if closeParaErr != nil {
+			return nil, closeParaErr
+		}
+		if !closeParenthesis {
+			for {
+				param, paramErr := p.parseTernary()
+				if paramErr != nil {
+					return nil, paramErr
+				}
+				args = append(args, param)
+
+				commaMatch, commaErr := p.match(TokenComma)
+				if commaErr != nil {
+					return nil, commaErr
+				}
+				if !commaMatch {
+					break
+				}
+			}
+		}
+
+		closeParenthesis, closeParaErr = p.match(TokenCloseParenthesis)
+
+		if len(args) != len(function.Params) {
+			return nil, errors.New(fmt.Sprintf("Incorrect arg count for %v. Expected %d, Actual: %d", function.Name, len(function.Params), len(args)))
+		}
+
+		if closeParaErr != nil {
+			return nil, closeParaErr
+		}
+		if !closeParenthesis {
+			return nil, errors.New("Missing closing Parenthesis in function call")
+		}
+
+		return &CallExpr{expr, start, function}, nil
+	}
+	return expr, nil
 }
 
 func (p *Parser) parseTerm() (Expression, error) {
+	start := p.pos
 	eofMatch, eofErr := p.match(TokenEOF)
 	if eofErr != nil {
 		return nil, eofErr
@@ -358,7 +434,7 @@ func (p *Parser) parseTerm() (Expression, error) {
 		if err != nil {
 			return nil, errors.New(fmt.Sprintf(`Invalid number %v`, current.Value))
 		}
-		return literals.NewLiteral(intVal), nil
+		return NewLiteral(intVal, &start), nil
 	}
 
 	boolMatch, boolErr := p.nonAdvMatch(TokenBool)
@@ -371,9 +447,9 @@ func (p *Parser) parseTerm() (Expression, error) {
 			return nil, errors.New("Nil token")
 		}
 		if current.Value == "true" {
-			return literals.NewLiteral(true), nil
+			return NewLiteral(true, &start), nil
 		} else if current.Value == "false" {
-			return literals.NewLiteral(false), nil
+			return NewLiteral(false, &start), nil
 		}
 		return nil, errors.New(fmt.Sprintf("Invalid bool value %v", current.Value))
 	}
@@ -387,7 +463,7 @@ func (p *Parser) parseTerm() (Expression, error) {
 		if current == nil {
 			return nil, errors.New("Nil token")
 		}
-		return literals.NewLiteral(current.Value), nil
+		return NewLiteral(current.Value, &start), nil
 	}
 
 	identifierMatch, identifierErr := p.nonAdvMatch(TokenIdentifier)
@@ -399,15 +475,14 @@ func (p *Parser) parseTerm() (Expression, error) {
 		if identifier == nil {
 			return nil, errors.New("Nil token")
 		}
-		funcCall, funcCallErr := p.match(TokenOpenParenthesis)
-		if funcCallErr != nil {
-			return nil, funcCallErr
-		}
-		if funcCall {
-			if !p.funcSymbols.IsDeclared(identifier.Value) {
-				return nil, errors.New("Function call on non-declared function")
-			}
 
+		if p.VarSymbols.IsDeclared(identifier.Value) {
+			varType := p.VarSymbols.GetType(identifier.Value)
+			return &VariableExpr{identifier.Value, *varType, start}, nil
+		}
+
+		if p.FuncSymbols.IsDeclared(identifier.Value) {
+			return &FunctionExpr{*p.FuncSymbols.Get(identifier.Value), start}, nil
 		}
 	}
 

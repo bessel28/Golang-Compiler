@@ -14,16 +14,16 @@ func TestNotEqualCondition(t *testing.T) {
 		val1, val2 Literal
 		res        bool
 	}{
-		{NewLiteral(1), NewLiteral(1), false},
-		{NewLiteral(1), NewLiteral(2), true},
-		{NewLiteral(1), NewLiteral("1"), true},
-		{NewLiteral("1"), NewLiteral("1"), false},
-		{NewLiteral(true), NewLiteral(true), false},
-		{NewLiteral(true), NewLiteral(false), true},
-		{NewLiteral(true), NewLiteral(1), true},
+		{NewLiteral(1, nil), NewLiteral(1, nil), false},
+		{NewLiteral(1, nil), NewLiteral(2, nil), true},
+		{NewLiteral(1, nil), NewLiteral("1", nil), true},
+		{NewLiteral("1", nil), NewLiteral("1", nil), false},
+		{NewLiteral(true, nil), NewLiteral(true, nil), false},
+		{NewLiteral(true, nil), NewLiteral(false, nil), true},
+		{NewLiteral(true, nil), NewLiteral(1, nil), true},
 	}
 
-	env := Environment{}
+	env := RuntimeEnvironment{}
 
 	for index, tt := range tests {
 		testName := fmt.Sprintf("NotEqualCondition%d", index)
