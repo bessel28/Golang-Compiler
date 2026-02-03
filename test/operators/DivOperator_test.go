@@ -1,8 +1,11 @@
 package operators
 
 import (
+	. "compiler/src/components/ast"
 	. "compiler/src/components/literals"
 	. "compiler/src/components/operators"
+	. "compiler/src/runtime"
+	. "compiler/test"
 	"fmt"
 	"testing"
 )
@@ -22,15 +25,14 @@ func TestDivOperator(t *testing.T) {
 	for index, tt := range tests {
 		testName := fmt.Sprintf("DivOperator%d", index)
 		t.Run(testName, func(t *testing.T) {
-			binOperator1 := BinaryOperator{
+			binOperator1 := BinaryExpr{
 				Left:  &IntLiteral{Value: tt.a},
 				Right: &IntLiteral{Value: tt.b},
 				Op:    DivOperator{},
 			}
 
-			expectedAnswer, _ := (&IntLiteral{Value: tt.res}).Eval()
-
-			EvaluateTest(t, binOperator1, expectedAnswer)
+			expectedAnswer := &IntLiteral{Value: tt.res}
+			EvaluateTest(t, &binOperator1, &Environment{}, expectedAnswer)
 		})
 	}
 }
@@ -45,13 +47,13 @@ func TestDivByZero(t *testing.T) {
 	for index, tt := range tests {
 		testName := fmt.Sprintf("DivByZero%d", index)
 		t.Run(testName, func(t *testing.T) {
-			binOperator := BinaryOperator{
+			binOperator := BinaryExpr{
 				Left:  &IntLiteral{Value: tt.a},
 				Right: &IntLiteral{Value: tt.b},
 				Op:    DivOperator{},
 			}
 
-			_, err := binOperator.Eval()
+			_, err := Eval(&binOperator, &Environment{})
 			if err == nil {
 				t.Errorf("Expected division by zero to return an error")
 			}
@@ -71,13 +73,13 @@ func TestStringDivOperator(t *testing.T) {
 	for index, tt := range tests {
 		testName := fmt.Sprintf("StringDivOperator%d", index)
 		t.Run(testName, func(t *testing.T) {
-			binOperator := BinaryOperator{
+			binOperator := BinaryExpr{
 				Left:  NewLiteral(tt.a),
 				Right: NewLiteral(tt.b),
 				Op:    DivOperator{},
 			}
 
-			_, err := binOperator.Eval()
+			_, err := Eval(&binOperator, &Environment{})
 			if err == nil {
 				t.Errorf("Expected string division to return an error")
 			}

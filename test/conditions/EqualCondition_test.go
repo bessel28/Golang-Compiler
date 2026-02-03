@@ -4,6 +4,7 @@ import (
 	. "compiler/src/components/ast"
 	. "compiler/src/components/conditions"
 	. "compiler/src/components/literals"
+	. "compiler/src/runtime"
 	"fmt"
 	"testing"
 )
@@ -22,12 +23,14 @@ func TestEqualCondition(t *testing.T) {
 		{NewLiteral(true), NewLiteral(1), false},
 	}
 
+	env := Environment{}
+
 	for index, tt := range tests {
 		testName := fmt.Sprintf("EqualCondition%d", index)
 		t.Run(testName, func(t *testing.T) {
-			condition := EqualCondition{&BinaryCondition{Left: tt.val1, Right: tt.val2}}
+			condition := BinaryCondition{EqualCondition{}, tt.val1, tt.val2}
 
-			conditionCheck, err := condition.Eval()
+			conditionCheck, err := Eval(&condition, &env)
 			if err != nil {
 				t.Error(err)
 			}

@@ -1,8 +1,11 @@
 package operators
 
 import (
+	. "compiler/src/components/ast"
 	. "compiler/src/components/literals"
 	. "compiler/src/components/operators"
+	. "compiler/src/runtime"
+	. "compiler/test"
 	"fmt"
 	"testing"
 )
@@ -22,15 +25,14 @@ func TestSubOperator(t *testing.T) {
 	for index, tt := range tests {
 		testName := fmt.Sprintf("SubOperator%d", index)
 		t.Run(testName, func(t *testing.T) {
-			binOperator1 := BinaryOperator{
+			binOperator1 := BinaryExpr{
 				Left:  &IntLiteral{Value: tt.a},
 				Right: &IntLiteral{Value: tt.b},
 				Op:    SubOperator{},
 			}
 
-			expectedAnswer, _ := (&IntLiteral{Value: tt.res}).Eval()
-
-			EvaluateTest(t, binOperator1, expectedAnswer)
+			expectedAnswer := &IntLiteral{Value: tt.res}
+			EvaluateTest(t, &binOperator1, &Environment{}, expectedAnswer)
 		})
 	}
 }
@@ -47,13 +49,13 @@ func TestStringSubOperator(t *testing.T) {
 	for index, tt := range tests {
 		testName := fmt.Sprintf("StringSubOperator%d", index)
 		t.Run(testName, func(t *testing.T) {
-			binOperator := BinaryOperator{
+			binOperator := BinaryExpr{
 				Left:  NewLiteral(tt.a),
 				Right: NewLiteral(tt.b),
 				Op:    SubOperator{},
 			}
 
-			_, err := binOperator.Eval()
+			_, err := Eval(&binOperator, &Environment{})
 			if err == nil {
 				t.Errorf("Expected string Subiplication to return an error")
 			}

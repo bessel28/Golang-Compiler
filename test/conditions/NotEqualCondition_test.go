@@ -4,6 +4,7 @@ import (
 	. "compiler/src/components/ast"
 	. "compiler/src/components/conditions"
 	. "compiler/src/components/literals"
+	. "compiler/src/runtime"
 	"fmt"
 	"testing"
 )
@@ -22,12 +23,14 @@ func TestNotEqualCondition(t *testing.T) {
 		{NewLiteral(true), NewLiteral(1), true},
 	}
 
+	env := Environment{}
+
 	for index, tt := range tests {
 		testName := fmt.Sprintf("NotEqualCondition%d", index)
 		t.Run(testName, func(t *testing.T) {
-			condition := NotEqualCondition{&BinaryCondition{Left: tt.val1, Right: tt.val2}}
+			condition := BinaryCondition{NotEqualCondition{}, tt.val1, tt.val2}
 
-			conditionCheck, err := condition.Eval()
+			conditionCheck, err := Eval(&condition, &env)
 			if err != nil {
 				t.Error(err)
 			}

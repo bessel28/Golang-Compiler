@@ -1,29 +1,17 @@
 package conditions
 
 import (
-	. "compiler/src/components/ast"
+	"compiler/src/components/ast"
 	. "compiler/src/components/literals"
 )
 
 type AndCondition struct {
-	*BinaryCondition
+	ast.Condition
 }
 
-func (e *AndCondition) Eval() (Literal, error) {
-	check, err := e.Check()
-	return &BoolLiteral{check}, err
-}
+func (op AndCondition) Apply(left *Literal, right *Literal) (*BoolLiteral, error) {
+	leftBool, _ := (*left).AsBool()
+	rightBool, _ := (*right).AsBool()
 
-func (e *AndCondition) Check() (bool, error) {
-	leftLiteral, err := e.Left.Eval()
-	rightLiteral, err2 := e.Right.Eval()
-
-	if err != nil || err2 != nil {
-		return false, err
-	}
-
-	leftBool, _ := leftLiteral.AsBool()
-	rightBool, _ := rightLiteral.AsBool()
-
-	return leftBool && rightBool, nil
+	return &BoolLiteral{leftBool && rightBool, (*left).Pos()}, nil
 }

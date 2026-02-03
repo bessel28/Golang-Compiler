@@ -1,6 +1,8 @@
 package parser
 
-import "errors"
+import (
+	"errors"
+)
 
 type TokenType int
 type Lexer func(input string, start int) (*string, int, bool, error)
@@ -30,6 +32,7 @@ const (
 	TokenOr
 	TokenAnd
 	TokenNot
+	TokenIdentifier
 )
 
 var (
@@ -52,6 +55,14 @@ var (
 	LexerOr               = LexerData{TokenOr, simpleLexer("||")}
 	LexerAnd              = LexerData{TokenAnd, simpleLexer("&&")}
 	LexerNot              = LexerData{TokenNot, simpleLexer("!")}
+	LexerIdentifier       = LexerData{TokenIdentifier, lexIdentifier}
+)
+
+var (
+	lexers = []LexerData{
+		LexerPlus, LexerMinus, LexerMultiply, LexerDivide, LexerOpenParenthesis, LexerCloseParenthesis,
+		LexerQuestionMark, LexerColon, LexerEQ, LexerNeq, LexerGT, LexerLT, LexerOr, LexerAnd, LexerNot}
+	tokenLexers = []LexerData{LexerBool, LexerString, LexerNumber, LexerIdentifier}
 )
 
 func simpleLexer(symbol string) Lexer {
@@ -82,16 +93,12 @@ func Lex(input string) ([]Token, error) {
 		return nil, err
 	}
 	if ok {
-		tokens = append(tokens, Token{LexerEOF.Type, *data})
+		tokens = append(tokens, Token{LexerEOF.Type, *data, i})
 	}
 	return tokens, nil
 }
 
 func parseToken(input string, i int) (*Token, int, error) {
-	lexers := []LexerData{
-		LexerPlus, LexerMinus, LexerMultiply, LexerDivide, LexerOpenParenthesis, LexerCloseParenthesis,
-		LexerQuestionMark, LexerColon, LexerEQ, LexerNeq, LexerGT, LexerLT, LexerOr, LexerAnd, LexerNot,
-	}
 	if input[i] == ' ' {
 		return nil, i, nil
 	}
@@ -101,7 +108,7 @@ func parseToken(input string, i int) (*Token, int, error) {
 			return nil, i, err
 		}
 		if ok {
-			return &Token{lexer.Type, *data}, index, nil
+			return &Token{lexer.Type, *data, i}, index, nil
 		}
 	}
 
@@ -116,15 +123,13 @@ func parseToken(input string, i int) (*Token, int, error) {
 }
 
 func LexLiteral(input string, i int) (*Token, int, error) {
-	lexers := []LexerData{LexerBool, LexerString, LexerNumber}
-
-	for _, lx := range lexers {
+	for _, lx := range tokenLexers {
 		data, index, ok, err := lx.Lexer(input, i)
 		if err != nil {
 			return nil, i, err
 		}
 		if ok {
-			return &Token{lx.Type, *data}, index, nil
+			return &Token{lx.Type, *data, i}, index, nil
 		}
 	}
 
@@ -143,7 +148,9 @@ func lexBool(input string, i int) (*string, int, bool, error) {
 
 func lexString(input string, i int) (*string, int, bool, error) {
 	start := i
-
+	if i >= len(input) {
+		return nil, start, false, nil
+	}
 	if input[i] == '"' || input[i] == '\'' {
 		quoteType := input[i]
 		for i+1 <= len(input) && input[i+1] != quoteType {
@@ -168,4 +175,27 @@ func lexInt(input string, i int) (*string, int, bool, error) {
 	return nil, start, false, nil
 }
 
+func lexIdentifier(input string, i int) (*string, int, bool, error) {
+	start := i
+	if i >= len(input) || !isAlpha(input[i]) {
+		return nil, start, false, nil
+	}
+
+	for i < len(input) && isAlphaNumeric(input[i]) {
+		i++
+	}
+
+	return ptr(input[start:i]), i - 1, true, nil
+}
+
 func ptr[T any](v T) *T { return &v }
+
+func isAlpha(c byte) bool {
+	return (c >= 'a' && c <= 'z') ||
+		(c >= 'A' && c <= 'Z') ||
+		c == '_'
+}
+func isAlphaNumeric(c byte) bool {
+	return isAlpha(c) ||
+		(c >= '0' && c <= '9')
+}

@@ -4,6 +4,7 @@ import (
 	. "compiler/src/components/ast"
 	. "compiler/src/components/conditions"
 	. "compiler/src/components/literals"
+	. "compiler/src/runtime"
 	"fmt"
 	"testing"
 )
@@ -21,12 +22,14 @@ func TestLessThanCondition(t *testing.T) {
 		{NewLiteral("A"), NewLiteral("B"), true},
 	}
 
+	env := Environment{}
+
 	for index, tt := range tests {
 		testName := fmt.Sprintf("LessThanCondition%d", index)
 		t.Run(testName, func(t *testing.T) {
-			condition := LessThanCondition{&BinaryCondition{Left: tt.val1, Right: tt.val2}}
+			condition := BinaryCondition{LessThanCondition{}, tt.val1, tt.val2}
 
-			conditionCheck, err := condition.Eval()
+			conditionCheck, err := Eval(&condition, &env)
 			if err != nil {
 				t.Error(err)
 			}
@@ -54,12 +57,14 @@ func TestInvalidLessThanCondition(t *testing.T) {
 		{NewLiteral(true), NewLiteral(1)},
 	}
 
+	env := Environment{}
+
 	for index, tt := range tests {
 		testName := fmt.Sprintf("InvalidLessThanCondition%d", index)
 		t.Run(testName, func(t *testing.T) {
-			condition := LessThanCondition{&BinaryCondition{Left: tt.val1, Right: tt.val2}}
+			condition := BinaryCondition{LessThanCondition{}, tt.val1, tt.val2}
 
-			_, err := condition.Eval()
+			_, err := Eval(&condition, &env)
 			if err == nil {
 				t.Error("Expected error but check returned nil")
 			}

@@ -14,6 +14,7 @@ import (
 type Token struct {
 	Type  TokenType
 	Value string
+	Pos   int
 }
 
 func mapTokens(tokens []Token) []string {
@@ -29,13 +30,10 @@ func mapTokens(tokens []Token) []string {
 }
 
 type Parser struct {
-	tokens []Token
-	pos    int
-}
-
-func NewParser(input string) (*Parser, error) {
-	tokens, err := Lex(input)
-	return &Parser{tokens, 0}, err
+	tokens      []Token
+	pos         int
+	varSymbols  *SymbolTable
+	funcSymbols *SymbolTable
 }
 
 func (p *Parser) current() *Token {
@@ -69,6 +67,11 @@ func (p *Parser) nonAdvMatch(types ...TokenType) (bool, error) {
 		}
 	}
 	return false, nil
+}
+
+func NewParser(input string) (*Parser, error) {
+	tokens, err := Lex(input)
+	return &Parser{tokens, 0, &SymbolTable{}, &SymbolTable{}}, err
 }
 
 // ParseExpr Attempts to parse all the tokens in a Parser's tokens field.
@@ -117,7 +120,7 @@ func (p *Parser) parseTernary() (Expression, error) {
 		if falseErr != nil {
 			return nil, falseErr
 		}
-		return &TernaryOperator{Left: trueExpr, Right: falseExpr, Condition: condition}, nil
+		return &TernaryExpr{IfElseOperator{}, condition, trueExpr, falseExpr}, nil
 	}
 	return conditionExpr, nil
 }
@@ -140,7 +143,7 @@ func (p *Parser) parseOrExpr() (Expression, error) {
 		if rightErr != nil {
 			return nil, rightErr
 		}
-		left = &OrCondition{&BinaryCondition{left, right}}
+		left = &BinaryCondition{OrCondition{}, left, right}
 	}
 
 	return left, nil
@@ -164,7 +167,7 @@ func (p *Parser) parseAndExpr() (Expression, error) {
 		if rightErr != nil {
 			return nil, rightErr
 		}
-		left = &AndCondition{&BinaryCondition{left, right}}
+		left = &BinaryCondition{AndCondition{}, left, right}
 	}
 
 	return left, nil
@@ -184,7 +187,7 @@ func (p *Parser) parseEqualityExpr() (Expression, error) {
 		if rightErr != nil {
 			return nil, rightErr
 		}
-		return &EqualCondition{&BinaryCondition{left, right}}, nil
+		return &BinaryCondition{EqualCondition{}, left, right}, nil
 	}
 	neqMatch, neqErr := p.match(TokenNeq)
 	if neqErr != nil {
@@ -195,7 +198,7 @@ func (p *Parser) parseEqualityExpr() (Expression, error) {
 		if rightErr != nil {
 			return nil, rightErr
 		}
-		return &NotEqualCondition{&BinaryCondition{left, right}}, nil
+		return &BinaryCondition{NotEqualCondition{}, left, right}, nil
 	}
 	return left, nil
 }
@@ -215,7 +218,7 @@ func (p *Parser) parseRelationalExpr() (Expression, error) {
 			return nil, rightErr
 		}
 
-		return &GreaterThanCondition{&BinaryCondition{left, right}}, nil
+		return &BinaryCondition{GreaterThanCondition{}, left, right}, nil
 	}
 
 	ltMatch, ltErr := p.match(TokenGT)
@@ -228,7 +231,7 @@ func (p *Parser) parseRelationalExpr() (Expression, error) {
 			return nil, rightErr
 		}
 
-		return &LessThanCondition{&BinaryCondition{left, right}}, nil
+		return &BinaryCondition{LessThanCondition{}, left, right}, nil
 	}
 	return left, nil
 }
@@ -258,9 +261,9 @@ func (p *Parser) parseAdditive() (Expression, error) {
 		case currentOp == nil:
 			break
 		case currentOp.Type == TokenPlus:
-			left = &BinaryOperator{left, right, AddOperator{}}
+			left = &BinaryExpr{AddOperator{}, left, right}
 		case currentOp.Type == TokenMinus:
-			left = &BinaryOperator{left, right, SubOperator{}}
+			left = &BinaryExpr{SubOperator{}, left, right}
 		}
 	}
 	return left, nil
@@ -290,9 +293,9 @@ func (p *Parser) parseMultiplicative() (Expression, error) {
 		case currentOp == nil:
 			break
 		case currentOp.Type == TokenMultiply:
-			left = &BinaryOperator{left, right, MultOperator{}}
+			left = &BinaryExpr{MultOperator{}, left, right}
 		case currentOp.Type == TokenDivide:
-			left = &BinaryOperator{left, right, DivOperator{}}
+			left = &BinaryExpr{DivOperator{}, left, right}
 		}
 	}
 	return left, nil
@@ -308,7 +311,7 @@ func (p *Parser) parseUnary() (Expression, error) {
 		if leftErr != nil {
 			return nil, leftErr
 		}
-		return &NotCondition{&UnaryCondition{left}}, nil
+		return &UnaryCondition{NotCondition{}, left}, nil
 	}
 	return p.parseTerm()
 }
@@ -333,7 +336,7 @@ func (p *Parser) parseTerm() (Expression, error) {
 		}
 
 		closeParaMatch, closeParaErr := p.match(TokenCloseParenthesis)
-		if closeParaErr == nil {
+		if closeParaErr != nil {
 			return nil, closeParaErr
 		}
 		if !closeParaMatch {
@@ -387,6 +390,26 @@ func (p *Parser) parseTerm() (Expression, error) {
 		return literals.NewLiteral(current.Value), nil
 	}
 
-	return nil, errors.New("Unknown token " + p.current().Value)
+	identifierMatch, identifierErr := p.nonAdvMatch(TokenIdentifier)
+	if identifierErr != nil {
+		return nil, identifierErr
+	}
+	if identifierMatch {
+		identifier := p.advance()
+		if identifier == nil {
+			return nil, errors.New("Nil token")
+		}
+		funcCall, funcCallErr := p.match(TokenOpenParenthesis)
+		if funcCallErr != nil {
+			return nil, funcCallErr
+		}
+		if funcCall {
+			if !p.funcSymbols.IsDeclared(identifier.Value) {
+				return nil, errors.New("Function call on non-declared function")
+			}
 
+		}
+	}
+
+	return nil, errors.New("Unknown term")
 }

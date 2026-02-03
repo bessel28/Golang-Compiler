@@ -1,19 +1,24 @@
 package literals
 
 import (
-	"compiler/src/components/ast"
 	"fmt"
 )
 
 type IntLiteral struct {
-	Value int
+	Value    int
+	Position int
 }
+
+func (l *IntLiteral) Node()           {}
+func (l *IntLiteral) Pos() int        { return l.Position }
+func (l *IntLiteral) ExpressionNode() {}
+func (l *IntLiteral) ConditionNode()  {}
 
 func (l *IntLiteral) AsBool() (bool, error) {
 	return l.Value != 0, nil
 }
 
-func (l *IntLiteral) Equals(l2 ast.Literal) bool {
+func (l *IntLiteral) Equals(l2 Literal) bool {
 	o, ok := l2.(*IntLiteral)
 	if !ok {
 		return false
@@ -21,14 +26,10 @@ func (l *IntLiteral) Equals(l2 ast.Literal) bool {
 	return l.Value == o.Value
 }
 
-func (l *IntLiteral) Eval() (ast.Literal, error) {
-	return l, nil
-}
-
 func (l *IntLiteral) String() string {
 	return fmt.Sprintf("%d", l.Value)
 }
 
-func (l *IntLiteral) Kind() ast.ValueKind {
-	return ast.IntKind
+func (l *IntLiteral) Kind() ValueKind {
+	return IntKind
 }

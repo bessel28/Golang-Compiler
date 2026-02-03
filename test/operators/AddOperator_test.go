@@ -4,6 +4,8 @@ import (
 	. "compiler/src/components/ast"
 	. "compiler/src/components/literals"
 	. "compiler/src/components/operators"
+	. "compiler/src/runtime"
+	. "compiler/test"
 	"fmt"
 	"testing"
 )
@@ -23,15 +25,14 @@ func TestIntAddOperator(t *testing.T) {
 	for index, tt := range tests {
 		testName := fmt.Sprintf("IntAddOperator%d", index)
 		t.Run(testName, func(t *testing.T) {
-			binOperator1 := BinaryOperator{
+			binOperator1 := BinaryExpr{
 				Left:  &IntLiteral{Value: tt.a},
 				Right: &IntLiteral{Value: tt.b},
 				Op:    AddOperator{},
 			}
 
-			expectedAnswer, _ := (&IntLiteral{Value: tt.res}).Eval()
-
-			EvaluateTest(t, binOperator1, expectedAnswer)
+			expectedAnswer := &IntLiteral{Value: tt.res}
+			EvaluateTest(t, &binOperator1, &Environment{}, expectedAnswer)
 		})
 	}
 }
@@ -50,9 +51,9 @@ func TestNestedIntAddOperator(t *testing.T) {
 	for index, tt := range tests {
 		testName := fmt.Sprintf("NestedIntAddOperator%d", index)
 		t.Run(testName, func(t *testing.T) {
-			binOperator := BinaryOperator{
+			binOperator := BinaryExpr{
 				Left: &IntLiteral{Value: tt.a},
-				Right: &BinaryOperator{
+				Right: &BinaryExpr{
 					Left:  &IntLiteral{Value: tt.b},
 					Right: &IntLiteral{Value: tt.c},
 					Op:    AddOperator{},
@@ -60,9 +61,9 @@ func TestNestedIntAddOperator(t *testing.T) {
 				Op: AddOperator{},
 			}
 
-			expectedAnswer, _ := (&IntLiteral{Value: tt.res}).Eval()
+			expectedAnswer := &IntLiteral{Value: tt.res}
 
-			EvaluateTest(t, binOperator, expectedAnswer)
+			EvaluateTest(t, &binOperator, &Environment{}, expectedAnswer)
 		})
 	}
 }
@@ -82,15 +83,15 @@ func TestStringAddOperator(t *testing.T) {
 	for index, tt := range tests {
 		testName := fmt.Sprintf("StringAddOperator%d", index)
 		t.Run(testName, func(t *testing.T) {
-			binOperator1 := BinaryOperator{
+			binOperator1 := BinaryExpr{
 				Left:  &StringLiteral{Value: tt.a},
 				Right: &StringLiteral{Value: tt.b},
 				Op:    AddOperator{},
 			}
 
-			expectedAnswer, _ := (&StringLiteral{Value: tt.res}).Eval()
+			expectedAnswer := &StringLiteral{Value: tt.res}
 
-			EvaluateTest(t, binOperator1, expectedAnswer)
+			EvaluateTest(t, &binOperator1, &Environment{}, expectedAnswer)
 		})
 	}
 }
@@ -110,15 +111,15 @@ func TestStringIntAddOperator(t *testing.T) {
 	for index, tt := range tests {
 		testName := fmt.Sprintf("StringIntAddOperator%d", index)
 		t.Run(testName, func(t *testing.T) {
-			binOperator1 := BinaryOperator{
+			binOperator1 := BinaryExpr{
 				Left:  &StringLiteral{Value: tt.a},
 				Right: &IntLiteral{Value: tt.b},
 				Op:    AddOperator{},
 			}
 
-			expectedAnswer, _ := (&StringLiteral{Value: tt.res}).Eval()
+			expectedAnswer := &StringLiteral{Value: tt.res}
 
-			EvaluateTest(t, binOperator1, expectedAnswer)
+			EvaluateTest(t, &binOperator1, &Environment{}, expectedAnswer)
 		})
 	}
 }
@@ -138,26 +139,15 @@ func TestIntStringAddOperator(t *testing.T) {
 	for index, tt := range tests {
 		testName := fmt.Sprintf("IntStringAddOperator%d", index)
 		t.Run(testName, func(t *testing.T) {
-			binOperator1 := BinaryOperator{
+			binOperator1 := BinaryExpr{
 				Left:  &IntLiteral{Value: tt.a},
 				Right: &StringLiteral{Value: tt.b},
 				Op:    AddOperator{},
 			}
 
-			expectedAnswer, _ := (&StringLiteral{Value: tt.res}).Eval()
+			expectedAnswer := &StringLiteral{Value: tt.res}
 
-			EvaluateTest(t, binOperator1, expectedAnswer)
+			EvaluateTest(t, &binOperator1, &Environment{}, expectedAnswer)
 		})
-	}
-}
-
-func EvaluateTest(t *testing.T, expr Expression, expectedLiteral Literal) {
-	literal, err := expr.Eval()
-	if err != nil {
-		t.Errorf("Error evaluating literal: %v", err)
-	}
-
-	if !expectedLiteral.Equals(literal) {
-		t.Errorf("Incorrect literal. Expected: %v, got: %v", expectedLiteral, literal)
 	}
 }

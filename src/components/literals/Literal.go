@@ -1,4 +1,4 @@
-package ast
+package literals
 
 type ValueKind int
 
@@ -16,6 +16,8 @@ type Literal interface {
 	Kind() ValueKind
 	String() string
 	Equals(l Literal) bool
-	Eval() (Literal, error)
 	AsBool() (bool, error)
+	ExpressionNode()
+	Node()
+	Pos() int
 }
