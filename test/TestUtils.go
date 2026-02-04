@@ -9,8 +9,8 @@ import (
 	"testing"
 )
 
-func EvaluateTest(t *testing.T, expr Expression, env *RuntimeEnvironment, expectedLiteral Literal) {
-	literal, err := Eval(expr, env)
+func EvaluateTest(t *testing.T, expr Expression, evaluator *Evaluator, expectedLiteral Literal) {
+	literal, err := evaluator.Eval(expr)
 	if err != nil {
 		t.Errorf("Error evaluating literal: %v", err)
 	}

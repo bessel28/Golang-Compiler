@@ -17,11 +17,11 @@ func TestTernaryOperator(t *testing.T) {
 		trueVal, falseVal Expression
 		res               int
 	}{
-		{&BinaryCondition{EqualCondition{}, NewLiteral(1, nil), NewLiteral(1, nil)}, NewLiteral(0, nil), NewLiteral(1, nil), 0},
-		{&BinaryCondition{EqualCondition{}, NewLiteral(0, nil), NewLiteral(1, nil)}, NewLiteral(0, nil), NewLiteral(1, nil), 1},
-		{&BinaryCondition{EqualCondition{}, NewLiteral(0, nil), NewLiteral(1, nil)},
-			&BinaryExpr{AddOperator{}, NewLiteral(1, nil), NewLiteral(2, nil)},
-			&BinaryExpr{AddOperator{}, NewLiteral(2, nil), NewLiteral(2, nil)}, 4},
+		{&BinaryCondition{EqualCondition{}, NewLiteral(1, nil), NewLiteral(1, nil), nil}, NewLiteral(0, nil), NewLiteral(1, nil), 0},
+		{&BinaryCondition{EqualCondition{}, NewLiteral(0, nil), NewLiteral(1, nil), nil}, NewLiteral(0, nil), NewLiteral(1, nil), 1},
+		{&BinaryCondition{EqualCondition{}, NewLiteral(0, nil), NewLiteral(1, nil), nil},
+			&BinaryExpr{AddOperator{}, NewLiteral(1, nil), NewLiteral(2, nil), nil},
+			&BinaryExpr{AddOperator{}, NewLiteral(2, nil), NewLiteral(2, nil), nil}, 4},
 	}
 
 	for index, tt := range tests {
@@ -32,10 +32,12 @@ func TestTernaryOperator(t *testing.T) {
 				tt.condition,
 				tt.trueVal,
 				tt.falseVal,
+				nil,
 			}
 
 			expectedAnswer := &IntLiteral{Value: tt.res}
-			EvaluateTest(t, &ternary, &RuntimeEnvironment{}, expectedAnswer)
+			evaluator := NewEvaluator(&RuntimeEnvironment{}, &Executor{})
+			EvaluateTest(t, &ternary, evaluator, expectedAnswer)
 		})
 	}
 }

@@ -1,11 +1,11 @@
 package functions
 
 import (
-	. "compiler/src/components/literals"
+	. "compiler/src/components"
 )
 
 type FunctionSignature struct {
 	Name       string
-	Params     []ValueKind
-	ReturnType *ValueKind
+	Params     []Parameter
+	ReturnType Type
 }

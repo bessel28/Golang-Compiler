@@ -1,12 +1,18 @@
 package literals
 
 import (
+	. "compiler/src/components"
 	"fmt"
 )
 
 type BoolLiteral struct {
 	Value    bool
 	Position int
+}
+
+func (l *BoolLiteral) Type() Type {
+	//TODO implement me
+	panic("implement me")
 }
 
 func (l *BoolLiteral) Node()           {}

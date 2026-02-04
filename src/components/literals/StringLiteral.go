@@ -1,8 +1,17 @@
 package literals
 
+import (
+	. "compiler/src/components"
+)
+
 type StringLiteral struct {
 	Value    string
 	Position int
+}
+
+func (l StringLiteral) Type() Type {
+	//TODO implement me
+	panic("implement me")
 }
 
 func (l StringLiteral) Node()           {}

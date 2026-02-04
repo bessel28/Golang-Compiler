@@ -22,14 +22,14 @@ func TestGreaterThanCondition(t *testing.T) {
 		{NewLiteral("A", nil), NewLiteral("B", nil), false},
 	}
 
-	env := RuntimeEnvironment{}
-
 	for index, tt := range tests {
 		testName := fmt.Sprintf("GreaterThanCondition%d", index)
 		t.Run(testName, func(t *testing.T) {
-			condition := BinaryCondition{GreaterThanCondition{}, tt.val1, tt.val2}
+			evaluator := NewEvaluator(&RuntimeEnvironment{}, &Executor{})
 
-			conditionCheck, err := Eval(&condition, &env)
+			condition := BinaryCondition{GreaterThanCondition{}, tt.val1, tt.val2, nil}
+
+			conditionCheck, err := evaluator.Eval(&condition)
 			if err != nil {
 				t.Error(err)
 			}
@@ -57,14 +57,14 @@ func TestInvalidGreaterThanCondition(t *testing.T) {
 		{NewLiteral(true, nil), NewLiteral(1, nil)},
 	}
 
-	env := RuntimeEnvironment{}
-
 	for index, tt := range tests {
 		testName := fmt.Sprintf("InvalidGreaterThanCondition%d", index)
 		t.Run(testName, func(t *testing.T) {
-			condition := BinaryCondition{GreaterThanCondition{}, tt.val1, tt.val2}
+			evaluator := NewEvaluator(&RuntimeEnvironment{}, &Executor{})
 
-			_, err := Eval(&condition, &env)
+			condition := BinaryCondition{GreaterThanCondition{}, tt.val1, tt.val2, nil}
+
+			_, err := evaluator.Eval(&condition)
 
 			if err == nil {
 				t.Error("Expected error but check returned nil")

@@ -23,14 +23,14 @@ func TestNotEqualCondition(t *testing.T) {
 		{NewLiteral(true, nil), NewLiteral(1, nil), true},
 	}
 
-	env := RuntimeEnvironment{}
-
 	for index, tt := range tests {
 		testName := fmt.Sprintf("NotEqualCondition%d", index)
 		t.Run(testName, func(t *testing.T) {
-			condition := BinaryCondition{NotEqualCondition{}, tt.val1, tt.val2}
+			evaluator := NewEvaluator(&RuntimeEnvironment{}, &Executor{})
 
-			conditionCheck, err := Eval(&condition, &env)
+			condition := BinaryCondition{NotEqualCondition{}, tt.val1, tt.val2, nil}
+
+			conditionCheck, err := evaluator.Eval(&condition)
 			if err != nil {
 				t.Error(err)
 			}

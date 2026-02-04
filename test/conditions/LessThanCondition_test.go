@@ -22,14 +22,14 @@ func TestLessThanCondition(t *testing.T) {
 		{NewLiteral("A", nil), NewLiteral("B", nil), true},
 	}
 
-	env := RuntimeEnvironment{}
-
 	for index, tt := range tests {
 		testName := fmt.Sprintf("LessThanCondition%d", index)
 		t.Run(testName, func(t *testing.T) {
-			condition := BinaryCondition{LessThanCondition{}, tt.val1, tt.val2}
+			evaluator := NewEvaluator(&RuntimeEnvironment{}, &Executor{})
 
-			conditionCheck, err := Eval(&condition, &env)
+			condition := BinaryCondition{LessThanCondition{}, tt.val1, tt.val2, nil}
+
+			conditionCheck, err := evaluator.Eval(&condition)
 			if err != nil {
 				t.Error(err)
 			}
@@ -57,14 +57,14 @@ func TestInvalidLessThanCondition(t *testing.T) {
 		{NewLiteral(true, nil), NewLiteral(1, nil)},
 	}
 
-	env := RuntimeEnvironment{}
-
 	for index, tt := range tests {
 		testName := fmt.Sprintf("InvalidLessThanCondition%d", index)
 		t.Run(testName, func(t *testing.T) {
-			condition := BinaryCondition{LessThanCondition{}, tt.val1, tt.val2}
+			evaluator := NewEvaluator(&RuntimeEnvironment{}, &Executor{})
 
-			_, err := Eval(&condition, &env)
+			condition := BinaryCondition{LessThanCondition{}, tt.val1, tt.val2, nil}
+
+			_, err := evaluator.Eval(&condition)
 			if err == nil {
 				t.Error("Expected error but check returned nil")
 			}

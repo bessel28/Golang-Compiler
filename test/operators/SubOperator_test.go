@@ -25,14 +25,15 @@ func TestSubOperator(t *testing.T) {
 	for index, tt := range tests {
 		testName := fmt.Sprintf("SubOperator%d", index)
 		t.Run(testName, func(t *testing.T) {
-			binOperator1 := BinaryExpr{
+			binOperator := BinaryExpr{
 				Left:  &IntLiteral{Value: tt.a},
 				Right: &IntLiteral{Value: tt.b},
 				Op:    SubOperator{},
 			}
 
 			expectedAnswer := &IntLiteral{Value: tt.res}
-			EvaluateTest(t, &binOperator1, &RuntimeEnvironment{}, expectedAnswer)
+			evaluator := NewEvaluator(&RuntimeEnvironment{}, &Executor{})
+			EvaluateTest(t, &binOperator, evaluator, expectedAnswer)
 		})
 	}
 }
@@ -54,8 +55,8 @@ func TestStringSubOperator(t *testing.T) {
 				Right: NewLiteral(tt.b, nil),
 				Op:    SubOperator{},
 			}
-
-			_, err := Eval(&binOperator, &RuntimeEnvironment{})
+			evaluator := NewEvaluator(&RuntimeEnvironment{}, &Executor{})
+			_, err := evaluator.Eval(&binOperator)
 			if err == nil {
 				t.Errorf("Expected string Subiplication to return an error")
 			}

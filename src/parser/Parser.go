@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"compiler/src/components"
 	. "compiler/src/components/ast"
 	. "compiler/src/components/conditions"
 	. "compiler/src/components/functions"
@@ -8,6 +9,7 @@ import (
 	. "compiler/src/components/operators"
 	"errors"
 	"fmt"
+	"reflect"
 	"strconv"
 	"strings"
 )
@@ -124,7 +126,7 @@ func (p *Parser) parseTernary() (Expression, error) {
 		if falseErr != nil {
 			return nil, falseErr
 		}
-		return &TernaryExpr{IfElseOperator{}, condition, trueExpr, falseExpr}, nil
+		return &TernaryExpr{IfElseOperator{}, condition, trueExpr, falseExpr, nil}, nil
 	}
 	return conditionExpr, nil
 }
@@ -147,7 +149,7 @@ func (p *Parser) parseOrExpr() (Expression, error) {
 		if rightErr != nil {
 			return nil, rightErr
 		}
-		left = &BinaryCondition{OrCondition{}, left, right}
+		left = &BinaryCondition{OrCondition{}, left, right, nil}
 	}
 
 	return left, nil
@@ -171,7 +173,7 @@ func (p *Parser) parseAndExpr() (Expression, error) {
 		if rightErr != nil {
 			return nil, rightErr
 		}
-		left = &BinaryCondition{AndCondition{}, left, right}
+		left = &BinaryCondition{AndCondition{}, left, right, nil}
 	}
 
 	return left, nil
@@ -191,7 +193,7 @@ func (p *Parser) parseEqualityExpr() (Expression, error) {
 		if rightErr != nil {
 			return nil, rightErr
 		}
-		return &BinaryCondition{EqualCondition{}, left, right}, nil
+		return &BinaryCondition{EqualCondition{}, left, right, nil}, nil
 	}
 	neqMatch, neqErr := p.match(TokenNeq)
 	if neqErr != nil {
@@ -202,7 +204,7 @@ func (p *Parser) parseEqualityExpr() (Expression, error) {
 		if rightErr != nil {
 			return nil, rightErr
 		}
-		return &BinaryCondition{NotEqualCondition{}, left, right}, nil
+		return &BinaryCondition{NotEqualCondition{}, left, right, nil}, nil
 	}
 	return left, nil
 }
@@ -222,7 +224,7 @@ func (p *Parser) parseRelationalExpr() (Expression, error) {
 			return nil, rightErr
 		}
 
-		return &BinaryCondition{GreaterThanCondition{}, left, right}, nil
+		return &BinaryCondition{GreaterThanCondition{}, left, right, nil}, nil
 	}
 
 	ltMatch, ltErr := p.match(TokenGT)
@@ -235,7 +237,7 @@ func (p *Parser) parseRelationalExpr() (Expression, error) {
 			return nil, rightErr
 		}
 
-		return &BinaryCondition{LessThanCondition{}, left, right}, nil
+		return &BinaryCondition{LessThanCondition{}, left, right, nil}, nil
 	}
 	return left, nil
 }
@@ -265,9 +267,9 @@ func (p *Parser) parseAdditive() (Expression, error) {
 		case currentOp == nil:
 			break
 		case currentOp.Type == TokenPlus:
-			left = &BinaryExpr{AddOperator{}, left, right}
+			left = &BinaryExpr{AddOperator{}, left, right, nil}
 		case currentOp.Type == TokenMinus:
-			left = &BinaryExpr{SubOperator{}, left, right}
+			left = &BinaryExpr{SubOperator{}, left, right, nil}
 		}
 	}
 	return left, nil
@@ -297,9 +299,9 @@ func (p *Parser) parseMultiplicative() (Expression, error) {
 		case currentOp == nil:
 			break
 		case currentOp.Type == TokenMultiply:
-			left = &BinaryExpr{MultOperator{}, left, right}
+			left = &BinaryExpr{MultOperator{}, left, right, nil}
 		case currentOp.Type == TokenDivide:
-			left = &BinaryExpr{DivOperator{}, left, right}
+			left = &BinaryExpr{DivOperator{}, left, right, nil}
 		}
 	}
 	return left, nil
@@ -316,7 +318,7 @@ func (p *Parser) parseUnary() (Expression, error) {
 		if leftErr != nil {
 			return nil, leftErr
 		}
-		return &UnaryCondition{NotCondition{}, left}, nil
+		return &UnaryCondition{NotCondition{}, left, nil}, nil
 	}
 	return p.parseCall()
 }
@@ -334,7 +336,7 @@ func (p *Parser) parseCall() (Expression, error) {
 	}
 	if openParenthesis {
 		variableExpr, variableType := expr.(*VariableExpr)
-		if variableType && variableExpr.Type != FunctionRefKind {
+		if variableType && reflect.TypeOf(variableExpr.Type) != reflect.TypeOf(components.FuncType{}) {
 			return nil, errors.New(fmt.Sprintf("Variable %v is not a callable type", variableExpr.Name))
 		}
 		functionExpr, functionType := expr.(*FunctionExpr)
@@ -342,11 +344,19 @@ func (p *Parser) parseCall() (Expression, error) {
 			return nil, errors.New("Uncallable Expression")
 		}
 
-		var function *FunctionSignature
+		var functionPtr **FunctionSignature
 		if variableType {
-			function = p.FuncSymbols.Get(variableExpr.Name)
+			functionPtr = p.FuncSymbols.Get(variableExpr.Name)
 		} else {
-			function = p.FuncSymbols.Get(functionExpr.Name)
+			functionPtr = p.FuncSymbols.Get(functionExpr.Name)
+		}
+		if functionPtr == nil {
+			return nil, errors.New("Function defintion was nil")
+		}
+
+		function := *functionPtr
+		if function == nil {
+			return nil, errors.New("Function defintion was nil")
 		}
 
 		var args []Expression
@@ -478,11 +488,23 @@ func (p *Parser) parseTerm() (Expression, error) {
 
 		if p.VarSymbols.IsDeclared(identifier.Value) {
 			varType := p.VarSymbols.GetType(identifier.Value)
+			if varType == nil {
+				return nil, errors.New("Variable declaration not found")
+			}
 			return &VariableExpr{identifier.Value, *varType, start}, nil
 		}
 
 		if p.FuncSymbols.IsDeclared(identifier.Value) {
-			return &FunctionExpr{*p.FuncSymbols.Get(identifier.Value), start}, nil
+			functionPtr := p.FuncSymbols.Get(identifier.Value)
+			if functionPtr == nil {
+				return nil, errors.New("Function defintion was nil")
+			}
+
+			function := *functionPtr
+			if function == nil {
+				return nil, errors.New("Function defintion was nil")
+			}
+			return &FunctionExpr{*function, start}, nil
 		}
 	}
 

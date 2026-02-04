@@ -1,12 +1,18 @@
 package literals
 
 import (
+	. "compiler/src/components"
 	"fmt"
 )
 
 type IntLiteral struct {
 	Value    int
 	Position int
+}
+
+func (l *IntLiteral) Type() Type {
+	//TODO implement me
+	panic("implement me")
 }
 
 func (l *IntLiteral) Node()           {}

@@ -1,13 +1,10 @@
 package conditions
 
 import (
-	"compiler/src/components/ast"
 	. "compiler/src/components/literals"
 )
 
-type AndCondition struct {
-	ast.Condition
-}
+type AndCondition struct{}
 
 func (op AndCondition) Apply(left *Literal, right *Literal) (*BoolLiteral, error) {
 	leftBool, _ := (*left).AsBool()

@@ -1,5 +1,9 @@
 package literals
 
+import (
+	. "compiler/src/components"
+)
+
 type Stringer interface {
 	String() string
 }
@@ -12,4 +16,5 @@ type Literal interface {
 	ExpressionNode()
 	Node()
 	Pos() int
+	Type() Type
 }

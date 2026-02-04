@@ -8,6 +8,8 @@ import (
 	"testing"
 )
 
+var executor = &Executor{}
+
 func TestEvalInt(t *testing.T) {
 	var tests = []struct {
 		input string
@@ -22,7 +24,8 @@ func TestEvalInt(t *testing.T) {
 
 	for i, tt := range tests {
 		testName := fmt.Sprintf("TestEvalInt%v", i)
-		evalTest(testName, &tt.input, tt.value, &RuntimeEnvironment{}, t)
+		evaluator := NewEvaluator(&RuntimeEnvironment{}, executor)
+		evalTest(testName, &tt.input, tt.value, evaluator, t)
 	}
 }
 
@@ -41,7 +44,8 @@ func TestEvalBool(t *testing.T) {
 
 	for i, tt := range tests {
 		testName := fmt.Sprintf("TestEvalBool%v", i)
-		evalTest(testName, &tt.input, tt.value, &RuntimeEnvironment{}, t)
+		evaluator := NewEvaluator(&RuntimeEnvironment{}, executor)
+		evalTest(testName, &tt.input, tt.value, evaluator, t)
 	}
 }
 
@@ -57,12 +61,14 @@ func TestEvalString(t *testing.T) {
 	}
 
 	for i, tt := range tests {
+		evaluator := NewEvaluator(&RuntimeEnvironment{}, executor)
 		testName := fmt.Sprintf("TestEvalString%v", i)
-		evalTest(testName, &tt.input, tt.value, &RuntimeEnvironment{}, t)
+		evalTest(testName, &tt.input, tt.value, evaluator, t)
 	}
 }
 
-func evalTest(testName string, input *string, expectedValue any, env *RuntimeEnvironment, t *testing.T) {
+func evalTest(testName string, input *string, expectedValue any, evaluator *Evaluator, t *testing.T) {
+
 	t.Run(testName, func(t *testing.T) {
 		parser, parserErr := NewParser(*input)
 		if parserErr != nil {
@@ -72,7 +78,7 @@ func evalTest(testName string, input *string, expectedValue any, env *RuntimeEnv
 		if exprErr != nil {
 			t.Fatalf("Error parsing expression: %v", exprErr)
 		}
-		evalVal, evalErr := Eval(expr, env)
+		evalVal, evalErr := evaluator.Eval(expr)
 		if evalErr != nil {
 			t.Fatalf("Error evaluating expression: %v", evalErr)
 		}

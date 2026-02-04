@@ -5,5 +5,10 @@ import (
 )
 
 type ExpressionStatement struct {
-	Expression
+	Expression Expression
+	Position   int
 }
+
+func (e *ExpressionStatement) Node()          {}
+func (e *ExpressionStatement) Pos() int       { return e.Position }
+func (e *ExpressionStatement) statementNode() {}

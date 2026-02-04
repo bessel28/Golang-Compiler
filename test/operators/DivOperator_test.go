@@ -25,14 +25,15 @@ func TestDivOperator(t *testing.T) {
 	for index, tt := range tests {
 		testName := fmt.Sprintf("DivOperator%d", index)
 		t.Run(testName, func(t *testing.T) {
-			binOperator1 := BinaryExpr{
+			binOperator := BinaryExpr{
 				Left:  &IntLiteral{Value: tt.a},
 				Right: &IntLiteral{Value: tt.b},
 				Op:    DivOperator{},
 			}
 
 			expectedAnswer := &IntLiteral{Value: tt.res}
-			EvaluateTest(t, &binOperator1, &RuntimeEnvironment{}, expectedAnswer)
+			evaluator := NewEvaluator(&RuntimeEnvironment{}, &Executor{})
+			EvaluateTest(t, &binOperator, evaluator, expectedAnswer)
 		})
 	}
 }
@@ -53,7 +54,8 @@ func TestDivByZero(t *testing.T) {
 				Op:    DivOperator{},
 			}
 
-			_, err := Eval(&binOperator, &RuntimeEnvironment{})
+			evaluator := NewEvaluator(&RuntimeEnvironment{}, &Executor{})
+			_, err := evaluator.Eval(&binOperator)
 			if err == nil {
 				t.Errorf("Expected division by zero to return an error")
 			}
@@ -79,7 +81,8 @@ func TestStringDivOperator(t *testing.T) {
 				Op:    DivOperator{},
 			}
 
-			_, err := Eval(&binOperator, &RuntimeEnvironment{})
+			evaluator := NewEvaluator(&RuntimeEnvironment{}, &Executor{})
+			_, err := evaluator.Eval(&binOperator)
 			if err == nil {
 				t.Errorf("Expected string division to return an error")
 			}

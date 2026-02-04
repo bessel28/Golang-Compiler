@@ -1,8 +1,8 @@
 package parsing
 
 import (
-	"compiler/src/components/functions"
-	"compiler/src/components/literals"
+	. "compiler/src/components"
+	. "compiler/src/components/functions"
 	. "compiler/src/parser"
 	"fmt"
 	"testing"
@@ -106,7 +106,6 @@ func Test_LexLiteralParser(t *testing.T) {
 }
 
 func Test_LexIdentifiers(t *testing.T) {
-	var intKind = literals.IntKind
 	var tests = []struct {
 		input         string
 		expectedToken *Token
@@ -116,14 +115,14 @@ func Test_LexIdentifiers(t *testing.T) {
 		{
 			"var1",
 			&Token{TokenIdentifier, "var1", -1},
-			&VarSymbolTable{map[string]*literals.ValueKind{"var1": &intKind}, nil},
-			&FuncSymbolTable{map[string]*functions.FunctionSignature{}, nil},
+			&VarSymbolTable{map[string]Type{"var1": &IntType{}}, nil},
+			&FuncSymbolTable{map[string]*FunctionSignature{}, nil},
 		},
 		{
 			"var1",
 			&Token{TokenIdentifier, "var1", -1},
-			&VarSymbolTable{map[string]*literals.ValueKind{"var1": &intKind}, nil},
-			&FuncSymbolTable{map[string]*functions.FunctionSignature{"var1": {"var1", []literals.ValueKind{}, &intKind}}, nil},
+			&VarSymbolTable{map[string]Type{"var1": &IntType{}}, nil},
+			&FuncSymbolTable{map[string]*FunctionSignature{"var1": {"var1", []Parameter{}, &IntType{}}}, nil},
 		},
 	}
 
@@ -153,7 +152,6 @@ func Test_LexIdentifiers(t *testing.T) {
 }
 
 func Test_LexFunctionCall(t *testing.T) {
-	var intKind = literals.IntKind
 	var tests = []struct {
 		input         string
 		expectedToken []*Token
@@ -163,8 +161,8 @@ func Test_LexFunctionCall(t *testing.T) {
 		{
 			"foo()",
 			[]*Token{{TokenIdentifier, "foo", -1}, {TokenOpenParenthesis, "(", -1}, {TokenCloseParenthesis, ")", -1}, {TokenEOF, "", -1}},
-			&VarSymbolTable{map[string]*literals.ValueKind{}, nil},
-			&FuncSymbolTable{map[string]*functions.FunctionSignature{"foo": {"foo", []literals.ValueKind{}, &intKind}}, nil},
+			&VarSymbolTable{map[string]Type{}, nil},
+			&FuncSymbolTable{map[string]*FunctionSignature{"foo": {"foo", []Parameter{}, &IntType{}}}, nil},
 		},
 	}
 
