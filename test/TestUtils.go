@@ -2,8 +2,9 @@ package test
 
 import (
 	. "compiler/src/components/ast"
-	"compiler/src/components/functions"
+	. "compiler/src/components/functions"
 	. "compiler/src/components/literals"
+	. "compiler/src/components/statements"
 	. "compiler/src/runtime"
 	"reflect"
 	"testing"
@@ -96,9 +97,9 @@ func CompareExpressions(actualExpr Expression, expectedExpr Expression, t *testi
 		}
 		CompareExpressions(actualBinary.Left, expectedBinary.Left, t)
 		CompareExpressions(actualBinary.Right, expectedBinary.Right, t)
-	case *functions.CallExpr:
-		actualFunction := actualExpr.(*functions.CallExpr)
-		expectedFunction := expectedExpr.(*functions.CallExpr)
+	case *CallExpr:
+		actualFunction := actualExpr.(*CallExpr)
+		expectedFunction := expectedExpr.(*CallExpr)
 		switch {
 		case actualFunction.FunctionSignature.Name != expectedFunction.FunctionSignature.Name:
 			t.Fatalf("Function Signature names did not match. Expected %v, Actual %v", actualFunction.FunctionSignature.Name, expectedFunction.FunctionSignature.Name)
@@ -115,6 +116,15 @@ func CompareExpressions(actualExpr Expression, expectedExpr Expression, t *testi
 		}
 		for i, expectedParam := range expectedFunction.Params {
 			CompareExpressions(actualFunction.Params[i], expectedParam, t)
+		}
+	case *VariableExpr:
+		actualVar := actualExpr.(*VariableExpr)
+		expectedVar := expectedExpr.(*VariableExpr)
+		if expectedVar.Name != actualVar.Name {
+			t.Fatalf("Variable names did not match. Expected %v, Actual: %v", expectedVar.Name, actualVar.Name)
+		}
+		if !expectedVar.ReturnType.Compare(actualVar.ReturnType) {
+			t.Fatalf("Variable Return Types did not match. Expected %T, Actual: %T", expectedVar.ReturnType, actualVar.ReturnType)
 		}
 	default:
 		t.Skipf("Undefined Expression Comparison for type %T", actualExpr)
@@ -165,4 +175,54 @@ func CompareRuntimeEnvironments(actualEnvironment *RuntimeEnvironment, expectedE
 	}
 }
 
-func CompareStatements(actualStatement Statement, expectedStatement Statement, t *testing.T) {}
+func CompareStatements(actualStatement Statement, expectedStatement Statement, t *testing.T) {
+	if reflect.TypeOf(actualStatement) != reflect.TypeOf(expectedStatement) {
+		t.Fatalf("(sub)Expression type was not expected. Expected: %T, Actual: %T", expectedStatement, actualStatement)
+	}
+	switch actualStatement.(type) {
+	case *BlockStatement:
+		expectedStmt := expectedStatement.(*BlockStatement)
+		actualStmt := actualStatement.(*BlockStatement)
+		if len(expectedStmt.Statements) != len(actualStmt.Statements) {
+			t.Fatalf("Block Statement sizes do not match. Expected: %d, Actual: %d", len(expectedStmt.Statements), len(actualStmt.Statements))
+		}
+		for i, stmt := range expectedStmt.Statements {
+			CompareStatements(stmt, actualStmt.Statements[i], t)
+		}
+	case *ExpressionStatement:
+		expectedStmt := expectedStatement.(*ExpressionStatement)
+		actualStmt := actualStatement.(*ExpressionStatement)
+		CompareExpressions(actualStmt.Expression, expectedStmt.Expression, t)
+	case *VariableAssignmentStatement:
+		expectedStmt := expectedStatement.(*VariableAssignmentStatement)
+		actualStmt := actualStatement.(*VariableAssignmentStatement)
+		if expectedStmt.Name != actualStmt.Name {
+			t.Fatalf("Variable names did not match. Expected %v, Actual: %v", expectedStmt.Name, actualStmt.Name)
+		}
+		CompareExpressions(actualStmt.Value, expectedStmt.Value, t)
+	case *VariableDeclarationStatement:
+		expectedStmt := expectedStatement.(*VariableDeclarationStatement)
+		actualStmt := actualStatement.(*VariableDeclarationStatement)
+		if expectedStmt.Name != actualStmt.Name {
+			t.Fatalf("Variable names did not match. Expected %v, Actual: %v", expectedStmt.Name, actualStmt.Name)
+		}
+		CompareExpressions(actualStmt.Value, expectedStmt.Value, t)
+	case *FunctionStatement:
+		expectedStmt := expectedStatement.(*FunctionStatement)
+		actualStmt := actualStatement.(*FunctionStatement)
+		if expectedStmt.Name != actualStmt.Name {
+			t.Fatalf("Function names did not match. Expected %v, Actual: %v", expectedStmt.Name, actualStmt.Name)
+		}
+		if expectedStmt.ReturnType.Compare(actualStmt.ReturnType) {
+			t.Fatalf("Function Return Types did not match. Expected %T, Actual: %T", expectedStmt.ReturnType, actualStmt.ReturnType)
+		}
+		CompareStatements(actualStmt.Block, expectedStmt.Block, t)
+	case *ReturnStatement:
+		expectedStmt := expectedStatement.(*ReturnStatement)
+		actualStmt := actualStatement.(*ReturnStatement)
+		CompareExpressions(actualStmt.ReturnExpr, expectedStmt.ReturnExpr, t)
+	default:
+		t.Skipf("Undefined comparison for statement type %T", actualStatement)
+	}
+
+}
