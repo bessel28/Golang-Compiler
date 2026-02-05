@@ -7,6 +7,7 @@ import (
 	. "compiler/src/components/functions"
 	. "compiler/src/components/literals"
 	. "compiler/src/components/operators"
+	"compiler/src/components/statements"
 	. "compiler/src/parser"
 	. "compiler/src/parser/expression"
 	. "compiler/test"
@@ -208,8 +209,8 @@ func Test_InvalidParser(t *testing.T) {
 }
 
 func Test_parseFunctionCall(t *testing.T) {
-	fooFunc := FunctionSignature{"foo", []*Parameter{}, &IntType{}}
-	fooFunc1Param := FunctionSignature{"foo", []*Parameter{{&IntType{}, "param1"}}, &IntType{}}
+	fooFunc := FunctionSignature{[]*Parameter{}, &IntType{}}
+	fooFunc1Param := FunctionSignature{[]*Parameter{{"param1", &IntType{}}}, &IntType{}}
 	var tests = []struct {
 		input        string
 		expectedExpr Expression
@@ -218,12 +219,12 @@ func Test_parseFunctionCall(t *testing.T) {
 	}{
 		{
 			"foo()",
-			&CallExpr{nil, -1, []Expression{}, &fooFunc},
+			&CallExpr{&FunctionExpr{"foo", &fooFunc, 0}, []Expression{}, -1},
 			&VarSymbolTable{map[string]Type{}, nil},
 			&FuncSymbolTable{map[string]*FunctionSignature{"foo": &fooFunc}, nil},
 		}, {
 			"foo(1)",
-			&CallExpr{nil, -1, []Expression{}, &fooFunc1Param},
+			&CallExpr{&FunctionExpr{"foo", &fooFunc1Param, 0}, []Expression{NewLiteral(1, nil)}, -1},
 			&VarSymbolTable{map[string]Type{}, nil},
 			&FuncSymbolTable{map[string]*FunctionSignature{"foo": &fooFunc1Param}, nil},
 		},
@@ -242,6 +243,7 @@ func Test_parseFunctionCall(t *testing.T) {
 			if exprErr != nil {
 				t.Fatalf("expression error: %v", exprErr)
 			}
+			NewTypeChecker(&[]Statement{&statements.ExpressionStatement{expr, 0}}, tt.varSymbols, tt.funcSymbols).CheckTypes()
 
 			CompareExpressions(expr, tt.expectedExpr, t)
 		})

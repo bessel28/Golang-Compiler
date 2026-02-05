@@ -1,12 +1,12 @@
 package expression
 
 import (
-	"compiler/src/components"
 	. "compiler/src/components/ast"
 	. "compiler/src/components/conditions"
 	. "compiler/src/components/functions"
 	. "compiler/src/components/literals"
 	. "compiler/src/components/operators"
+	. "compiler/src/components/variables"
 	"compiler/src/parser"
 	"errors"
 	"fmt"
@@ -337,27 +337,12 @@ func (p *Parser) parseCall() (Expression, error) {
 	}
 	if openParenthesis {
 		variableExpr, variableType := expr.(*VariableExpr)
-		if variableType && reflect.TypeOf(variableExpr.Type) != reflect.TypeOf(components.FuncType{}) {
-			return nil, errors.New(fmt.Sprintf("Variable %v is not a callable type", variableExpr.Name))
+		if variableType && reflect.TypeOf(variableExpr.Type) != reflect.TypeOf(FunctionSignature{}) {
+			return nil, errors.New(fmt.Sprintf("Variable %v is not a callable type", variableExpr.Identifier))
 		}
 		functionExpr, functionType := expr.(*FunctionExpr)
 		if !functionType && !variableType {
 			return nil, errors.New("Uncallable Expression")
-		}
-
-		var functionPtr **FunctionSignature
-		if variableType {
-			functionPtr = p.FuncSymbols.Get(variableExpr.Name)
-		} else {
-			functionPtr = p.FuncSymbols.Get(functionExpr.Name)
-		}
-		if functionPtr == nil {
-			return nil, errors.New("Function defintion was nil")
-		}
-
-		function := *functionPtr
-		if function == nil {
-			return nil, errors.New("Function defintion was nil")
 		}
 
 		var args []Expression
@@ -386,10 +371,6 @@ func (p *Parser) parseCall() (Expression, error) {
 
 		closeParenthesis, closeParaErr = p.match(TokenCloseParenthesis)
 
-		if len(args) != len(function.Params) {
-			return nil, errors.New(fmt.Sprintf("Incorrect arg count for %v. Expected %d, Actual: %d", function.Name, len(function.Params), len(args)))
-		}
-
 		if closeParaErr != nil {
 			return nil, closeParaErr
 		}
@@ -397,7 +378,7 @@ func (p *Parser) parseCall() (Expression, error) {
 			return nil, errors.New("Missing closing Parenthesis in function call")
 		}
 
-		return &CallExpr{expr, start, args, function}, nil
+		return &CallExpr{functionExpr, args, start}, nil
 	}
 	return expr, nil
 }
@@ -488,25 +469,14 @@ func (p *Parser) parseTerm() (Expression, error) {
 		}
 
 		if p.VarSymbols.IsDeclared(identifier.Value) {
-			varType := p.VarSymbols.GetType(identifier.Value)
+			varType := p.VarSymbols.Get(identifier.Value)
 			if varType == nil {
 				return nil, errors.New("Variable declaration not found")
 			}
-			return &VariableExpr{identifier.Value, *varType, start}, nil
+			return &VariableExpr{identifier.Value, varType, start}, nil
 		}
 
-		if p.FuncSymbols.IsDeclared(identifier.Value) {
-			functionPtr := p.FuncSymbols.Get(identifier.Value)
-			if functionPtr == nil {
-				return nil, errors.New("Function defintion was nil")
-			}
-
-			function := *functionPtr
-			if function == nil {
-				return nil, errors.New("Function defintion was nil")
-			}
-			return &FunctionExpr{*function, start}, nil
-		}
+		return &FunctionExpr{identifier.Value, nil, start}, nil
 	}
 
 	return nil, errors.New("Unknown term")

@@ -7,6 +7,7 @@ import (
 	. "compiler/src/components/literals"
 	. "compiler/src/components/operators"
 	. "compiler/src/components/statements"
+	. "compiler/src/components/variables"
 	. "compiler/src/runtime"
 	"compiler/test"
 	"fmt"
@@ -163,9 +164,10 @@ func Test_ReturnStatements(t *testing.T) {
 						},
 					}, 0}, &IntType{}, 0},
 				&VariableDeclarationStatement{
-					"var1", &CallExpr{nil, 0,
+					"var1", &CallExpr{
+						&FunctionExpr{"func1", &FunctionSignature{[]*Parameter{}, &IntType{}}, 0},
 						make([]Expression, 0),
-						&FunctionSignature{"func1", []*Parameter{}, &IntType{}},
+						0,
 					}, 0},
 			},
 			NewRuntimeEnvironment(
@@ -192,9 +194,10 @@ func Test_ReturnStatements(t *testing.T) {
 						},
 					}, 0}, &IntType{}, 0},
 				&VariableDeclarationStatement{
-					"var1", &CallExpr{nil, 0,
+					"var1", &CallExpr{
+						&FunctionExpr{"func1", &FunctionSignature{[]*Parameter{}, &IntType{}}, 0},
 						make([]Expression, 0),
-						&FunctionSignature{"func1", []*Parameter{}, &IntType{}},
+						0,
 					}, 0},
 			},
 			NewRuntimeEnvironment(
@@ -221,9 +224,10 @@ func Test_ReturnStatements(t *testing.T) {
 						},
 					}, 0}, &IntType{}, 0},
 				&VariableDeclarationStatement{
-					"var1", &CallExpr{nil, 0,
+					"var1", &CallExpr{
+						&FunctionExpr{"func1", &FunctionSignature{[]*Parameter{{"param1", &IntType{}}}, &IntType{}}, 0},
 						[]Expression{NewLiteral(2, nil)},
-						&FunctionSignature{"func1", []*Parameter{{&IntType{}, "param1"}}, &IntType{}},
+						0,
 					}, 0},
 			},
 			NewRuntimeEnvironment(
@@ -271,6 +275,54 @@ func Test_ExpressionStatements(t *testing.T) {
 
 	for i, tt := range tests {
 		testName := fmt.Sprintf("test_ExpressionStatements%d", i)
+		t.Run(testName, func(t *testing.T) {
+			executor := Executor{tt.input, NewRuntimeEnvironment(nil, nil, nil), 0}
+			_, err := executor.Execute()
+			if err != nil {
+				t.Error(err)
+			}
+
+			test.CompareRuntimeEnvironments(executor.Env, tt.expectedEnv, t)
+		})
+	}
+}
+
+func Test_FuncVariables(t *testing.T) {
+	var tests = []struct {
+		input       []Statement
+		expectedEnv *RuntimeEnvironment
+	}{
+		{[]Statement{
+			&FunctionStatement{"func1", make(map[string]Type), &BlockStatement{
+				[]Statement{
+					&ReturnStatement{0, NewLiteral(1, nil)},
+				}, 0}, &IntType{}, 0},
+			&VariableDeclarationStatement{
+				"var1",
+				&FunctionExpr{"func1", &FunctionSignature{[]*Parameter{}, &IntType{}}, 0},
+				1,
+			},
+			&VariableDeclarationStatement{
+				"var2",
+				&CallExpr{
+					&FunctionExpr{"func1", &FunctionSignature{[]*Parameter{}, &IntType{}}, 0},
+					[]Expression{},
+					2,
+				},
+				2,
+			},
+		},
+			NewRuntimeEnvironment(nil, map[string]*FunctionStatement{
+				"func1": {"func1", make(map[string]Type), &BlockStatement{
+					[]Statement{
+						&ReturnStatement{0, NewLiteral(1, nil)},
+					}, 0}, &IntType{}, 0},
+			}, nil),
+		},
+	}
+
+	for i, tt := range tests {
+		testName := fmt.Sprintf("test_FuncVariables%d", i)
 		t.Run(testName, func(t *testing.T) {
 			executor := Executor{tt.input, NewRuntimeEnvironment(nil, nil, nil), 0}
 			_, err := executor.Execute()

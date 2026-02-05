@@ -2,18 +2,27 @@ package functions
 
 import (
 	. "compiler/src/components"
-	"compiler/src/components/ast"
+	. "compiler/src/components/ast"
+	"errors"
+	"fmt"
 )
 
 type CallExpr struct {
-	Callee   ast.Expression
+	Callee   Callable
+	Params   []Expression
 	Position int
-	Params   []ast.Expression
-	*FunctionSignature
 }
 
 func (c *CallExpr) Type() (Type, error) {
-	return c.ReturnType, nil
+	calleeType, calleeErr := c.Callee.Type()
+	if calleeErr != nil {
+		return nil, calleeErr
+	}
+	calleeFuncSig, ok := calleeType.(*FunctionSignature)
+	if !ok {
+		return nil, errors.New(fmt.Sprintf("Callee is not a callable type (%T)", calleeType))
+	}
+	return calleeFuncSig.ReturnType, nil
 }
 
 func (c *CallExpr) Node()           {}

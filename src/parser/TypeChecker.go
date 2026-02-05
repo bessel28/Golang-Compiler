@@ -3,7 +3,9 @@ package parser
 import (
 	. "compiler/src/components"
 	. "compiler/src/components/ast"
+	. "compiler/src/components/functions"
 	. "compiler/src/components/statements"
+	. "compiler/src/components/variables"
 	"errors"
 	"fmt"
 )
@@ -11,10 +13,17 @@ import (
 type TypeChecker struct {
 	Statements *[]Statement
 	*VarSymbolTable
+	*FuncSymbolTable
 }
 
-func NewTypeChecker(statements *[]Statement) *TypeChecker {
-	return &TypeChecker{statements, &VarSymbolTable{}}
+func NewTypeChecker(statements *[]Statement, varSymbols *VarSymbolTable, funcSymbols *FuncSymbolTable) *TypeChecker {
+	if varSymbols == nil {
+		varSymbols = &VarSymbolTable{}
+	}
+	if funcSymbols == nil {
+		funcSymbols = &FuncSymbolTable{}
+	}
+	return &TypeChecker{statements, varSymbols, funcSymbols}
 }
 
 func (tc *TypeChecker) CheckTypes() error {
@@ -70,7 +79,12 @@ func (tc *TypeChecker) checkExpressionStatement(statement *ExpressionStatement) 
 func (tc *TypeChecker) checkFunctionStatement(statement *FunctionStatement) (Type, error) {
 	varSymbols := tc.VarSymbolTable
 	tc.VarSymbolTable = &VarSymbolTable{}
+	args := make([]*Parameter, len(statement.Params))
+	for name, paramType := range statement.Params {
+		args = append(args, &Parameter{name, paramType})
+	}
 	for _, stmt := range statement.Block.Statements {
+		//TODO this needs to ensure that EVERY Return type is the same and not just use the final one found
 		switch stmt.(type) {
 		case *ReturnStatement:
 			rtnType, rtnErr := tc.checkReturnStatement(stmt.(*ReturnStatement))
@@ -91,13 +105,16 @@ func (tc *TypeChecker) checkFunctionStatement(statement *FunctionStatement) (Typ
 		}
 	}
 	tc.VarSymbolTable = varSymbols
+
+	signature := &FunctionSignature{args, statement.ReturnType}
+	tc.FuncSymbolTable.Declare(statement.Name, signature)
 	return statement.ReturnType, nil
 }
 func (tc *TypeChecker) checkReturnStatement(statement *ReturnStatement) (Type, error) {
 	return tc.checkExpression(statement.ReturnExpr)
 }
 func (tc *TypeChecker) checkVariableAssignmentStatement(statement *VariableAssignmentStatement) error {
-	expectedType := *tc.VarSymbolTable.GetType(statement.Name)
+	expectedType := tc.VarSymbolTable.Get(statement.Name)
 	exprType, exprErr := tc.checkExpression(statement.Value)
 	if exprErr != nil {
 		return exprErr
@@ -118,22 +135,44 @@ func (tc *TypeChecker) checkVariableDeclarationStatement(statement *VariableDecl
 }
 
 func (tc *TypeChecker) checkExpression(expr Expression) (Type, error) {
-	return expr.Type()
-	//switch expr.(type) {
-	//case Literal:
-	//	return expr.Type()
-	//case *UnaryExpr:
-	//	return expr.(*UnaryExpr).Type()
-	//case *BinaryExpr:
-	//	return expr.(*BinaryExpr).Type()
-	//case *TernaryExpr:
-	//	return expr.(*TernaryExpr).Type()
-	//case *BinaryCondition:
-	//	return expr.(*BinaryCondition).Type()
-	//case *UnaryCondition:
-	//	return expr.(*UnaryCondition).Type()
-	//case *functions.CallExpr:
-	//	return expr.(*functions.CallExpr).Type()
-	//}
-	//return nil, errors.New("Unsupported expression during typecheck")
+	switch expr.(type) {
+	case *VariableExpr:
+		return tc.VarSymbolTable.Get(expr.(*VariableExpr).Identifier), nil
+	case *FunctionExpr:
+		signature := tc.FuncSymbolTable.Get(expr.(*FunctionExpr).Identifier)
+		if signature == nil {
+			return nil, errors.New(fmt.Sprintf("Function Signature '%v' not found", expr.(*FunctionExpr).Identifier))
+		}
+		expr.(*FunctionExpr).SetFunctionSignature(signature)
+		return signature, nil
+	case *CallExpr:
+		callExpr := expr.(*CallExpr)
+
+		signatureType, signatureErr := tc.checkExpression(callExpr.Callee)
+		if signatureErr != nil {
+			return nil, signatureErr
+		}
+
+		signature := signatureType.(*FunctionSignature)
+		if len(callExpr.Params) != len(signature.Params) {
+			return nil, errors.New(fmt.Sprintf("Incorrect arg count for %v. Expected %d, Actual: %d",
+				callExpr.Callee.GetIdentifier(), len(signature.Params), len(callExpr.Params)))
+		}
+
+		for i, param := range callExpr.Params {
+			paramType, err := tc.checkExpression(param)
+			if err != nil {
+				return nil, err
+			}
+
+			if !paramType.Compare(signature.Params[i].ValType) {
+				return nil, errors.New(fmt.Sprintf("Incorrect param type for %v. Expected %T, Actual: %T",
+					callExpr.Callee.GetIdentifier(), signature.Params[i].ValType, paramType))
+			}
+		}
+
+		return callExpr.Type()
+	default:
+		return expr.Type()
+	}
 }

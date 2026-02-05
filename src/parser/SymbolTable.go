@@ -1,21 +1,13 @@
 package parser
 
 import (
-	"compiler/src/components"
-	"compiler/src/components/functions"
+	. "compiler/src/components"
+	. "compiler/src/components/functions"
 )
 
-type SymbolTable[T any] struct {
+type SymbolTable[T Type] struct {
 	Names  map[string]T
 	Parent *SymbolTable[T]
-}
-
-func (s *SymbolTable[T]) GetType(name string) *T {
-	if s.IsDeclared(name) {
-		typeVal := s.Names[name]
-		return &typeVal
-	}
-	return nil
 }
 
 func (s *SymbolTable[T]) Declare(name string, varType T) {
@@ -31,15 +23,16 @@ func (s *SymbolTable[T]) IsDeclared(name string) bool {
 	}
 	return false
 }
-func (s *SymbolTable[T]) Get(name string) *T {
+func (s *SymbolTable[T]) Get(name string) T {
 	if _, exists := s.Names[name]; exists {
 		typeVal := s.Names[name]
-		return &typeVal
+		return typeVal
 	}
 	if s.Parent != nil {
 		return s.Parent.Get(name)
 	}
-	return nil
+	var zero T
+	return zero
 }
 
 func (s *SymbolTable[T]) Child() *SymbolTable[T] {
@@ -48,5 +41,5 @@ func (s *SymbolTable[T]) Child() *SymbolTable[T] {
 	return &childTable
 }
 
-type VarSymbolTable = SymbolTable[components.Type]
-type FuncSymbolTable = SymbolTable[*functions.FunctionSignature]
+type VarSymbolTable = SymbolTable[Type]
+type FuncSymbolTable = SymbolTable[*FunctionSignature]

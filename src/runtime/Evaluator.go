@@ -4,6 +4,7 @@ import (
 	. "compiler/src/components/ast"
 	. "compiler/src/components/functions"
 	. "compiler/src/components/literals"
+	. "compiler/src/components/variables"
 	"errors"
 	"fmt"
 )
@@ -27,6 +28,7 @@ func (ev *Evaluator) Eval(node Node) (Literal, error) {
 }
 
 func (ev *Evaluator) EvalExpr(exprNode Expression) (Literal, error) {
+	// TODO Implement FunctionExpr in this switch using runtime Values instead of Literals
 	switch exprNode.(type) {
 	case Literal:
 		litExpr := exprNode.(Literal)
@@ -51,11 +53,13 @@ func (ev *Evaluator) EvalExpr(exprNode Expression) (Literal, error) {
 		return *literal, err
 	case *VariableExpr:
 		varExpr := exprNode.(*VariableExpr)
-		varLit, err := ev.env.GetVariable(varExpr.Name)
+		varLit, err := ev.env.GetVariable(varExpr.Identifier)
 		return varLit, err
 	case *CallExpr:
 		callExpr := exprNode.(*CallExpr)
-		funcStmt, funcStmtErr := ev.parent.Env.GetFunction(callExpr.Name)
+		funcIdentifier := callExpr.Callee.GetIdentifier()
+
+		funcStmt, funcStmtErr := ev.parent.Env.GetFunction(funcIdentifier)
 		if funcStmtErr != nil {
 			return nil, funcStmtErr
 		}
@@ -70,10 +74,7 @@ func (ev *Evaluator) EvalExpr(exprNode Expression) (Literal, error) {
 				return nil, evalErr
 			}
 
-			if paramIndex >= len(callExpr.FunctionSignature.Params) {
-				return nil, errors.New(fmt.Sprintf("Function signature parameter %d does not exist", paramIndex))
-			}
-			paramSignature := callExpr.FunctionSignature.Params[paramIndex]
+			paramSignature := callExpr.Callee.GetFunctionSignature().Params[paramIndex]
 			paramDefErr := env.DefineVariable(paramSignature.Name, value)
 			if paramDefErr != nil {
 				return nil, paramDefErr
@@ -160,3 +161,5 @@ func evalTernary[T Literal](op *TernaryOperator[T], condition Condition, left Ex
 	}
 	return &evalVal, nil
 }
+
+// TODO Replace all Literal mentions in the runtime package (except when treating them as Expressions) with a new runtime Value package equivalent that includes function values

@@ -5,6 +5,7 @@ import (
 	. "compiler/src/components/functions"
 	. "compiler/src/components/literals"
 	. "compiler/src/components/statements"
+	. "compiler/src/components/variables"
 	. "compiler/src/runtime"
 	"reflect"
 	"testing"
@@ -100,18 +101,31 @@ func CompareExpressions(actualExpr Expression, expectedExpr Expression, t *testi
 	case *CallExpr:
 		actualFunction := actualExpr.(*CallExpr)
 		expectedFunction := expectedExpr.(*CallExpr)
-		switch {
-		case actualFunction.FunctionSignature.Name != expectedFunction.FunctionSignature.Name:
-			t.Fatalf("Function Signature names did not match. Expected %v, Actual %v", actualFunction.FunctionSignature.Name, expectedFunction.FunctionSignature.Name)
-		case actualFunction.FunctionSignature.ReturnType != expectedFunction.FunctionSignature.ReturnType:
-			t.Fatalf("Function Signature return types did not match. Expected %v, Actual %v", actualFunction.FunctionSignature.ReturnType, expectedFunction.FunctionSignature.ReturnType)
-		case len(actualFunction.FunctionSignature.Params) != len(expectedFunction.FunctionSignature.Params):
-			t.Fatalf("Incorrect number of params in function signature. Expected %v, Actual %v", len(expectedFunction.Params), len(actualFunction.Params))
 
+		if actualFunction.Callee.GetIdentifier() != expectedFunction.Callee.GetIdentifier() {
+			t.Fatalf("Function Identifiers did not match. Expected %v, Actual %v",
+				expectedFunction.Callee.GetIdentifier(), actualFunction.Callee.GetIdentifier())
 		}
-		for i, expectedParam := range expectedFunction.FunctionSignature.Params {
-			if actualFunction.FunctionSignature.Params[i] != expectedParam {
-				t.Fatalf("Function Signature param types don't match at %d. Expected %v, Actual %v", i, expectedParam, actualFunction.FunctionSignature.Params[i])
+
+		if actualFunction.Callee.GetFunctionSignature() == nil {
+			if expectedFunction.Callee.GetFunctionSignature() != nil {
+				t.Fatalf("Expected function '%v' was not found", expectedFunction.Callee.GetIdentifier())
+			}
+		} else {
+			switch {
+			case actualFunction.Callee.GetFunctionSignature().ReturnType != expectedFunction.Callee.GetFunctionSignature().ReturnType:
+				t.Fatalf("Function Signature return types did not match. Expected %v, Actual %v",
+					actualFunction.Callee.GetFunctionSignature().ReturnType, expectedFunction.Callee.GetFunctionSignature().ReturnType)
+			case len(actualFunction.Callee.GetFunctionSignature().Params) != len(expectedFunction.Callee.GetFunctionSignature().Params):
+				t.Fatalf("Incorrect number of params in function signature. Expected %v, Actual %v",
+					len(expectedFunction.Params), len(actualFunction.Params))
+
+			}
+			for i, expectedParam := range expectedFunction.Callee.GetFunctionSignature().Params {
+				if actualFunction.Callee.GetFunctionSignature().Params[i] != expectedParam {
+					t.Fatalf("Function Signature param types don't match at %d. Expected %v, Actual %v",
+						i, expectedParam, actualFunction.Callee.GetFunctionSignature().Params[i])
+				}
 			}
 		}
 		for i, expectedParam := range expectedFunction.Params {
@@ -120,8 +134,8 @@ func CompareExpressions(actualExpr Expression, expectedExpr Expression, t *testi
 	case *VariableExpr:
 		actualVar := actualExpr.(*VariableExpr)
 		expectedVar := expectedExpr.(*VariableExpr)
-		if expectedVar.Name != actualVar.Name {
-			t.Fatalf("Variable names did not match. Expected %v, Actual: %v", expectedVar.Name, actualVar.Name)
+		if expectedVar.Identifier != actualVar.Identifier {
+			t.Fatalf("Variable names did not match. Expected %v, Actual: %v", expectedVar.Identifier, actualVar.Identifier)
 		}
 		if !expectedVar.ReturnType.Compare(actualVar.ReturnType) {
 			t.Fatalf("Variable Return Types did not match. Expected %T, Actual: %T", expectedVar.ReturnType, actualVar.ReturnType)

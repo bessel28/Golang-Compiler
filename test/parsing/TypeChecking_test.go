@@ -38,7 +38,7 @@ func Test_TypeChcker(t *testing.T) {
 
 			stmts := []Statement{&statements.ExpressionStatement{expr, 0}}
 
-			typeChecker := NewTypeChecker(&stmts)
+			typeChecker := NewTypeChecker(&stmts, nil, nil)
 
 			checkErr := typeChecker.CheckTypes()
 			if checkErr != nil {
@@ -50,3 +50,6 @@ func Test_TypeChcker(t *testing.T) {
 		})
 	}
 }
+
+// TODO add tests for variable expressions
+// TODO add tests for function expressions

@@ -123,7 +123,7 @@ func Test_LexIdentifiers(t *testing.T) {
 			"var1",
 			&Token{TokenIdentifier, "var1", -1},
 			&VarSymbolTable{map[string]Type{"var1": &IntType{}}, nil},
-			&FuncSymbolTable{map[string]*FunctionSignature{"var1": {"var1", []*Parameter{}, &IntType{}}}, nil},
+			&FuncSymbolTable{map[string]*FunctionSignature{"var1": {[]*Parameter{}, &IntType{}}}, nil},
 		},
 	}
 
@@ -163,7 +163,7 @@ func Test_LexFunctionCall(t *testing.T) {
 			"foo()",
 			[]*Token{{TokenIdentifier, "foo", -1}, {TokenOpenParenthesis, "(", -1}, {TokenCloseParenthesis, ")", -1}, {TokenEOF, "", -1}},
 			&VarSymbolTable{map[string]Type{}, nil},
-			&FuncSymbolTable{map[string]*FunctionSignature{"foo": {"foo", []*Parameter{}, &IntType{}}}, nil},
+			&FuncSymbolTable{map[string]*FunctionSignature{"foo": {[]*Parameter{}, &IntType{}}}, nil},
 		},
 	}
 
