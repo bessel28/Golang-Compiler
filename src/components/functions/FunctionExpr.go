@@ -7,12 +7,12 @@ type FunctionExpr struct {
 	Position int
 }
 
-func (f *FunctionExpr) Type() Type {
+func (f *FunctionExpr) Type() (Type, error) {
 	var params = make([]Type, len(f.Params))
 	for _, paramType := range f.Params {
 		params = append(params, paramType.ValType)
 	}
-	return &FuncType{params, f.ReturnType}
+	return &FuncType{params, f.ReturnType}, nil
 }
 
 func (f *FunctionExpr) Node()           {}

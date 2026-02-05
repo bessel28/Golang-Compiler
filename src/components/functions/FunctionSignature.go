@@ -6,6 +6,6 @@ import (
 
 type FunctionSignature struct {
 	Name       string
-	Params     []Parameter
+	Params     []*Parameter
 	ReturnType Type
 }

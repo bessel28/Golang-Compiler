@@ -1,19 +1,31 @@
 package conditions
 
 import (
+	. "compiler/src/components"
 	. "compiler/src/components/literals"
 	"errors"
 )
 
 type GreaterThanCondition struct{}
 
+func (op GreaterThanCondition) GetType(left Type, right Type) (Type, error) {
+	if left.Compare(&BoolType{}) || right.Compare(&BoolType{}) {
+		return nil, errors.New("Cannot compare bools using > operator")
+	}
+	if !left.Compare(right) {
+		return nil, errors.New("Cannot compare differnt types using > operator")
+	}
+
+	return &BoolType{}, nil
+}
+
 func (op GreaterThanCondition) Apply(left *Literal, right *Literal) (*BoolLiteral, error) {
 	if (*left).Kind() == BoolKind || (*right).Kind() == BoolKind {
-		return &BoolLiteral{false, (*left).Pos()}, errors.New("Invalid comparison")
+		return nil, errors.New("Invalid comparison")
 	}
 
 	if (*left).Kind() != (*right).Kind() {
-		return &BoolLiteral{false, (*left).Pos()}, errors.New("Invalid comparison")
+		return nil, errors.New("Invalid comparison")
 	}
 
 	switch (*left).Kind() {
@@ -22,6 +34,6 @@ func (op GreaterThanCondition) Apply(left *Literal, right *Literal) (*BoolLitera
 	case StringKind:
 		return &BoolLiteral{(*left).(*StringLiteral).Value > (*right).(*StringLiteral).Value, (*left).Pos()}, nil
 	default:
-		return &BoolLiteral{false, (*left).Pos()}, errors.New("unhandled default case")
+		return nil, errors.New("unhandled default case")
 	}
 }

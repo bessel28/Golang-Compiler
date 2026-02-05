@@ -1,6 +1,7 @@
 package operators
 
 import (
+	. "compiler/src/components"
 	. "compiler/src/components/literals"
 )
 
@@ -13,4 +14,12 @@ func (op AddOperator) Apply(left *Literal, right *Literal) (Literal, error) {
 	default:
 		return &StringLiteral{(*left).String() + (*right).String(), (*left).Pos()}, nil
 	}
+}
+
+func (op AddOperator) GetType(left Type, right Type) (Type, error) {
+	switch {
+	case left.Compare(&IntType{}) && right.Compare(&IntType{}):
+		return &IntType{}, nil
+	}
+	return &StringType{}, nil
 }

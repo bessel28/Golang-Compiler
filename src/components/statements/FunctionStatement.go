@@ -1,18 +1,17 @@
 package statements
 
 import (
-	. "compiler/src/components/ast"
-	"compiler/src/components/literals"
+	. "compiler/src/components"
 )
 
 type FunctionStatement struct {
 	Name       string
-	Params     map[string]*Expression
+	Params     map[string]Type
 	Block      *BlockStatement
-	ReturnType literals.ValueKind
+	ReturnType Type
 	Position   int
 }
 
 func (f *FunctionStatement) Node()          {}
 func (f *FunctionStatement) Pos() int       { return f.Position }
-func (f *FunctionStatement) statementNode() {}
+func (f *FunctionStatement) StatementNode() {}

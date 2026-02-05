@@ -12,4 +12,4 @@ type VariableAssignmentStatement struct {
 
 func (v *VariableAssignmentStatement) Node()          {}
 func (v *VariableAssignmentStatement) Pos() int       { return v.Position }
-func (v *VariableAssignmentStatement) statementNode() {}
+func (v *VariableAssignmentStatement) StatementNode() {}

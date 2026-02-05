@@ -33,7 +33,7 @@ func TestIntAddOperator(t *testing.T) {
 
 			expectedAnswer := &IntLiteral{Value: tt.res}
 
-			evaluator := NewEvaluator(&RuntimeEnvironment{}, &Executor{})
+			evaluator := NewEvaluator(NewRuntimeEnvironment(nil, nil, nil), &Executor{})
 			EvaluateTest(t, &binOperator, evaluator, expectedAnswer)
 		})
 	}
@@ -65,7 +65,7 @@ func TestNestedIntAddOperator(t *testing.T) {
 
 			expectedAnswer := &IntLiteral{Value: tt.res}
 
-			evaluator := NewEvaluator(&RuntimeEnvironment{}, &Executor{})
+			evaluator := NewEvaluator(NewRuntimeEnvironment(nil, nil, nil), &Executor{})
 			EvaluateTest(t, &binOperator, evaluator, expectedAnswer)
 		})
 	}
@@ -94,7 +94,7 @@ func TestStringAddOperator(t *testing.T) {
 
 			expectedAnswer := &StringLiteral{Value: tt.res}
 
-			evaluator := NewEvaluator(&RuntimeEnvironment{}, &Executor{})
+			evaluator := NewEvaluator(NewRuntimeEnvironment(nil, nil, nil), &Executor{})
 			EvaluateTest(t, &binOperator, evaluator, expectedAnswer)
 		})
 	}
@@ -123,7 +123,7 @@ func TestStringIntAddOperator(t *testing.T) {
 
 			expectedAnswer := &StringLiteral{Value: tt.res}
 
-			evaluator := NewEvaluator(&RuntimeEnvironment{}, &Executor{})
+			evaluator := NewEvaluator(NewRuntimeEnvironment(nil, nil, nil), &Executor{})
 			EvaluateTest(t, &binOperator, evaluator, expectedAnswer)
 		})
 	}
@@ -152,7 +152,7 @@ func TestIntStringAddOperator(t *testing.T) {
 
 			expectedAnswer := &StringLiteral{Value: tt.res}
 
-			evaluator := NewEvaluator(&RuntimeEnvironment{}, &Executor{})
+			evaluator := NewEvaluator(NewRuntimeEnvironment(nil, nil, nil), &Executor{})
 			EvaluateTest(t, &binOperator, evaluator, expectedAnswer)
 		})
 	}

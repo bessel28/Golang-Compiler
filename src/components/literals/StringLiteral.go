@@ -9,9 +9,8 @@ type StringLiteral struct {
 	Position int
 }
 
-func (l StringLiteral) Type() Type {
-	//TODO implement me
-	panic("implement me")
+func (l StringLiteral) Type() (Type, error) {
+	return &StringType{}, nil
 }
 
 func (l StringLiteral) Node()           {}

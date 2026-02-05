@@ -25,7 +25,7 @@ func TestLessThanCondition(t *testing.T) {
 	for index, tt := range tests {
 		testName := fmt.Sprintf("LessThanCondition%d", index)
 		t.Run(testName, func(t *testing.T) {
-			evaluator := NewEvaluator(&RuntimeEnvironment{}, &Executor{})
+			evaluator := NewEvaluator(NewRuntimeEnvironment(nil, nil, nil), &Executor{})
 
 			condition := BinaryCondition{LessThanCondition{}, tt.val1, tt.val2, nil}
 
@@ -60,7 +60,7 @@ func TestInvalidLessThanCondition(t *testing.T) {
 	for index, tt := range tests {
 		testName := fmt.Sprintf("InvalidLessThanCondition%d", index)
 		t.Run(testName, func(t *testing.T) {
-			evaluator := NewEvaluator(&RuntimeEnvironment{}, &Executor{})
+			evaluator := NewEvaluator(NewRuntimeEnvironment(nil, nil, nil), &Executor{})
 
 			condition := BinaryCondition{LessThanCondition{}, tt.val1, tt.val2, nil}
 

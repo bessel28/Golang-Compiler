@@ -10,9 +10,8 @@ type IntLiteral struct {
 	Position int
 }
 
-func (l *IntLiteral) Type() Type {
-	//TODO implement me
-	panic("implement me")
+func (l *IntLiteral) Type() (Type, error) {
+	return &IntType{}, nil
 }
 
 func (l *IntLiteral) Node()           {}

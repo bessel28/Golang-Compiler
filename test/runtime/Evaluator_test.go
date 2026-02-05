@@ -1,8 +1,8 @@
-package parsing
+package runtime
 
 import (
 	. "compiler/src/components/literals"
-	. "compiler/src/parser"
+	. "compiler/src/parser/expression"
 	. "compiler/src/runtime"
 	"fmt"
 	"testing"
@@ -24,7 +24,7 @@ func TestEvalInt(t *testing.T) {
 
 	for i, tt := range tests {
 		testName := fmt.Sprintf("TestEvalInt%v", i)
-		evaluator := NewEvaluator(&RuntimeEnvironment{}, executor)
+		evaluator := NewEvaluator(NewRuntimeEnvironment(nil, nil, nil), executor)
 		evalTest(testName, &tt.input, tt.value, evaluator, t)
 	}
 }
@@ -44,7 +44,7 @@ func TestEvalBool(t *testing.T) {
 
 	for i, tt := range tests {
 		testName := fmt.Sprintf("TestEvalBool%v", i)
-		evaluator := NewEvaluator(&RuntimeEnvironment{}, executor)
+		evaluator := NewEvaluator(NewRuntimeEnvironment(nil, nil, nil), executor)
 		evalTest(testName, &tt.input, tt.value, evaluator, t)
 	}
 }
@@ -61,7 +61,7 @@ func TestEvalString(t *testing.T) {
 	}
 
 	for i, tt := range tests {
-		evaluator := NewEvaluator(&RuntimeEnvironment{}, executor)
+		evaluator := NewEvaluator(NewRuntimeEnvironment(nil, nil, nil), executor)
 		testName := fmt.Sprintf("TestEvalString%v", i)
 		evalTest(testName, &tt.input, tt.value, evaluator, t)
 	}

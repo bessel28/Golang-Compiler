@@ -18,8 +18,8 @@ func (s *SymbolTable[T]) GetType(name string) *T {
 	return nil
 }
 
-func (s *SymbolTable[T]) Declare(name string, varType *T) {
-	s.Names[name] = *varType
+func (s *SymbolTable[T]) Declare(name string, varType T) {
+	s.Names[name] = varType
 }
 
 func (s *SymbolTable[T]) IsDeclared(name string) bool {
@@ -40,6 +40,12 @@ func (s *SymbolTable[T]) Get(name string) *T {
 		return s.Parent.Get(name)
 	}
 	return nil
+}
+
+func (s *SymbolTable[T]) Child() *SymbolTable[T] {
+	childTable := SymbolTable[T]{}
+	childTable.Parent = s
+	return &childTable
 }
 
 type VarSymbolTable = SymbolTable[components.Type]

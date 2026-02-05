@@ -1,4 +1,4 @@
-package parser
+package expression
 
 import (
 	"compiler/src/components"
@@ -7,6 +7,7 @@ import (
 	. "compiler/src/components/functions"
 	. "compiler/src/components/literals"
 	. "compiler/src/components/operators"
+	"compiler/src/parser"
 	"errors"
 	"fmt"
 	"reflect"
@@ -35,8 +36,8 @@ func mapTokens(tokens []Token) []string {
 type Parser struct {
 	Tokens      []Token
 	pos         int
-	VarSymbols  *VarSymbolTable
-	FuncSymbols *FuncSymbolTable
+	VarSymbols  *parser.VarSymbolTable
+	FuncSymbols *parser.FuncSymbolTable
 }
 
 func (p *Parser) current() *Token {
@@ -74,7 +75,7 @@ func (p *Parser) nonAdvMatch(types ...TokenType) (bool, error) {
 
 func NewParser(input string) (*Parser, error) {
 	tokens, err := Lex(input)
-	return &Parser{tokens, 0, &VarSymbolTable{}, &FuncSymbolTable{}}, err
+	return &Parser{tokens, 0, &parser.VarSymbolTable{}, &parser.FuncSymbolTable{}}, err
 }
 
 // ParseExpr Attempts to parse all the Tokens in a Parser's Tokens field.
@@ -396,7 +397,7 @@ func (p *Parser) parseCall() (Expression, error) {
 			return nil, errors.New("Missing closing Parenthesis in function call")
 		}
 
-		return &CallExpr{expr, start, function}, nil
+		return &CallExpr{expr, start, args, function}, nil
 	}
 	return expr, nil
 }

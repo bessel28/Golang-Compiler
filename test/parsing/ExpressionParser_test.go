@@ -8,6 +8,7 @@ import (
 	. "compiler/src/components/literals"
 	. "compiler/src/components/operators"
 	. "compiler/src/parser"
+	. "compiler/src/parser/expression"
 	. "compiler/test"
 	"fmt"
 	"testing"
@@ -34,7 +35,7 @@ func Test_Parser(t *testing.T) {
 				t.Fatalf("expression error: %s", parserErr)
 			}
 
-			CompareExpressions(&expr, &tt.expectedValue, t)
+			CompareExpressions(expr, tt.expectedValue, t)
 		})
 	}
 }
@@ -63,7 +64,7 @@ func Test_ParserIntValue(t *testing.T) {
 				t.Fatalf("expression error: %v", exprErr)
 			}
 
-			CompareExpressions(&expr, &tt.expectedValue, t)
+			CompareExpressions(expr, tt.expectedValue, t)
 		})
 	}
 }
@@ -92,7 +93,7 @@ func Test_ParserIntSpacesValue(t *testing.T) {
 				t.Fatalf("expression error: %v", exprErr)
 			}
 
-			CompareExpressions(&expr, &tt.expectedValue, t)
+			CompareExpressions(expr, tt.expectedValue, t)
 		})
 	}
 }
@@ -120,7 +121,7 @@ func Test_ParserStringValue(t *testing.T) {
 				t.Fatalf("expression error: %v", exprErr)
 			}
 
-			CompareExpressions(&expr, &tt.expectedValue, t)
+			CompareExpressions(expr, tt.expectedValue, t)
 		})
 	}
 }
@@ -152,7 +153,7 @@ func Test_ParserBoolValue(t *testing.T) {
 				t.Fatalf("expression error: %v", exprErr)
 			}
 
-			CompareExpressions(&expr, &tt.expectedValue, t)
+			CompareExpressions(expr, tt.expectedValue, t)
 		})
 	}
 }
@@ -181,7 +182,7 @@ func Test_intConditions(t *testing.T) {
 				t.Fatalf("expression error: %v", exprErr)
 			}
 
-			CompareExpressions(&expr, &tt.expectedValue, t)
+			CompareExpressions(expr, tt.expectedValue, t)
 		})
 	}
 }
@@ -207,8 +208,8 @@ func Test_InvalidParser(t *testing.T) {
 }
 
 func Test_parseFunctionCall(t *testing.T) {
-	fooFunc := FunctionSignature{"foo", []Parameter{}, &IntType{}}
-	fooFunc1Param := FunctionSignature{"foo", []Parameter{{&IntType{}, "param1"}}, &IntType{}}
+	fooFunc := FunctionSignature{"foo", []*Parameter{}, &IntType{}}
+	fooFunc1Param := FunctionSignature{"foo", []*Parameter{{&IntType{}, "param1"}}, &IntType{}}
 	var tests = []struct {
 		input        string
 		expectedExpr Expression
@@ -217,12 +218,12 @@ func Test_parseFunctionCall(t *testing.T) {
 	}{
 		{
 			"foo()",
-			&CallExpr{nil, -1, &fooFunc},
+			&CallExpr{nil, -1, []Expression{}, &fooFunc},
 			&VarSymbolTable{map[string]Type{}, nil},
 			&FuncSymbolTable{map[string]*FunctionSignature{"foo": &fooFunc}, nil},
 		}, {
 			"foo(1)",
-			&CallExpr{nil, -1, &fooFunc1Param},
+			&CallExpr{nil, -1, []Expression{}, &fooFunc1Param},
 			&VarSymbolTable{map[string]Type{}, nil},
 			&FuncSymbolTable{map[string]*FunctionSignature{"foo": &fooFunc1Param}, nil},
 		},
@@ -242,7 +243,7 @@ func Test_parseFunctionCall(t *testing.T) {
 				t.Fatalf("expression error: %v", exprErr)
 			}
 
-			CompareExpressions(&expr, &tt.expectedExpr, t)
+			CompareExpressions(expr, tt.expectedExpr, t)
 		})
 	}
 }

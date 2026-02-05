@@ -32,7 +32,7 @@ func TestDivOperator(t *testing.T) {
 			}
 
 			expectedAnswer := &IntLiteral{Value: tt.res}
-			evaluator := NewEvaluator(&RuntimeEnvironment{}, &Executor{})
+			evaluator := NewEvaluator(NewRuntimeEnvironment(nil, nil, nil), &Executor{})
 			EvaluateTest(t, &binOperator, evaluator, expectedAnswer)
 		})
 	}
@@ -54,7 +54,7 @@ func TestDivByZero(t *testing.T) {
 				Op:    DivOperator{},
 			}
 
-			evaluator := NewEvaluator(&RuntimeEnvironment{}, &Executor{})
+			evaluator := NewEvaluator(NewRuntimeEnvironment(nil, nil, nil), &Executor{})
 			_, err := evaluator.Eval(&binOperator)
 			if err == nil {
 				t.Errorf("Expected division by zero to return an error")
@@ -81,7 +81,7 @@ func TestStringDivOperator(t *testing.T) {
 				Op:    DivOperator{},
 			}
 
-			evaluator := NewEvaluator(&RuntimeEnvironment{}, &Executor{})
+			evaluator := NewEvaluator(NewRuntimeEnvironment(nil, nil, nil), &Executor{})
 			_, err := evaluator.Eval(&binOperator)
 			if err == nil {
 				t.Errorf("Expected string division to return an error")

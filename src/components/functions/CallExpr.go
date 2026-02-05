@@ -8,11 +8,12 @@ import (
 type CallExpr struct {
 	Callee   ast.Expression
 	Position int
+	Params   []ast.Expression
 	*FunctionSignature
 }
 
-func (c *CallExpr) Type() Type {
-	return c.ReturnType
+func (c *CallExpr) Type() (Type, error) {
+	return c.ReturnType, nil
 }
 
 func (c *CallExpr) Node()           {}

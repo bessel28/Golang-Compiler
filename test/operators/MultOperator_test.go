@@ -32,7 +32,7 @@ func TestMultOperator(t *testing.T) {
 			}
 
 			expectedAnswer := &IntLiteral{Value: tt.res}
-			evaluator := NewEvaluator(&RuntimeEnvironment{}, &Executor{})
+			evaluator := NewEvaluator(NewRuntimeEnvironment(nil, nil, nil), &Executor{})
 			EvaluateTest(t, &binOperator, evaluator, expectedAnswer)
 		})
 	}
@@ -56,7 +56,7 @@ func TestStringMultOperator(t *testing.T) {
 				Op:    MultOperator{},
 			}
 
-			evaluator := NewEvaluator(&RuntimeEnvironment{}, &Executor{})
+			evaluator := NewEvaluator(NewRuntimeEnvironment(nil, nil, nil), &Executor{})
 			_, err := evaluator.Eval(&binOperator)
 			if err == nil {
 				t.Errorf("Expected string multiplication to return an error")

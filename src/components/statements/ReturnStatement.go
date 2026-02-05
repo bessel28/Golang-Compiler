@@ -9,4 +9,4 @@ type ReturnStatement struct {
 
 func (r *ReturnStatement) Node()          {}
 func (r *ReturnStatement) Pos() int       { return r.Position }
-func (r *ReturnStatement) statementNode() {}
+func (r *ReturnStatement) StatementNode() {}

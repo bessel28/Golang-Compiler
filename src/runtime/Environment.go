@@ -8,12 +8,23 @@ import (
 )
 
 type RuntimeEnvironment struct {
-	Variables map[string]*Literal
+	Variables map[string]Literal
 	Functions map[string]*FunctionStatement
 	Parent    *RuntimeEnvironment
 }
 
-func (env *RuntimeEnvironment) DefineVariable(name string, value *Literal) error {
+func NewRuntimeEnvironment(vars map[string]Literal, funcs map[string]*FunctionStatement, parent *RuntimeEnvironment) *RuntimeEnvironment {
+	if vars == nil {
+		vars = make(map[string]Literal)
+	}
+	if funcs == nil {
+		funcs = make(map[string]*FunctionStatement)
+	}
+
+	return &RuntimeEnvironment{vars, funcs, parent}
+}
+
+func (env *RuntimeEnvironment) DefineVariable(name string, value Literal) error {
 	if _, exists := env.Variables[name]; exists {
 		return errors.New(fmt.Sprintf("Runtime Error: variable %v already exists", name))
 	}
@@ -21,14 +32,14 @@ func (env *RuntimeEnvironment) DefineVariable(name string, value *Literal) error
 	return nil
 }
 
-func (env *RuntimeEnvironment) AssignVariable(name string, value *Literal) error {
+func (env *RuntimeEnvironment) AssignVariable(name string, value Literal) error {
 	if _, exists := env.Variables[name]; !exists {
 		return errors.New(fmt.Sprintf("Runtime Error: variable %v does not exist", name))
 	}
 	env.Variables[name] = value
 	return nil
 }
-func (env *RuntimeEnvironment) GetVariable(name string) (*Literal, error) {
+func (env *RuntimeEnvironment) GetVariable(name string) (Literal, error) {
 	if _, exists := env.Variables[name]; !exists {
 		if env.Parent != nil {
 			return env.Parent.GetVariable(name)
@@ -65,9 +76,5 @@ func (env *RuntimeEnvironment) GetFunction(name string) (*FunctionStatement, err
 }
 
 func (env *RuntimeEnvironment) NewChild() *RuntimeEnvironment {
-	return &RuntimeEnvironment{
-		Parent:    env,
-		Variables: make(map[string]*Literal),
-		Functions: make(map[string]*FunctionStatement),
-	}
+	return NewRuntimeEnvironment(nil, nil, env)
 }

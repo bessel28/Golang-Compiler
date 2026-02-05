@@ -26,7 +26,7 @@ func TestNotEqualCondition(t *testing.T) {
 	for index, tt := range tests {
 		testName := fmt.Sprintf("NotEqualCondition%d", index)
 		t.Run(testName, func(t *testing.T) {
-			evaluator := NewEvaluator(&RuntimeEnvironment{}, &Executor{})
+			evaluator := NewEvaluator(NewRuntimeEnvironment(nil, nil, nil), &Executor{})
 
 			condition := BinaryCondition{NotEqualCondition{}, tt.val1, tt.val2, nil}
 

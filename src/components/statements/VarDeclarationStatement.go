@@ -12,4 +12,4 @@ type VariableDeclarationStatement struct {
 
 func (v *VariableDeclarationStatement) Node()          {}
 func (v *VariableDeclarationStatement) Pos() int       { return v.Position }
-func (v *VariableDeclarationStatement) statementNode() {}
+func (v *VariableDeclarationStatement) StatementNode() {}

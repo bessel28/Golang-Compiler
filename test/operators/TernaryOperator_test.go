@@ -36,7 +36,7 @@ func TestTernaryOperator(t *testing.T) {
 			}
 
 			expectedAnswer := &IntLiteral{Value: tt.res}
-			evaluator := NewEvaluator(&RuntimeEnvironment{}, &Executor{})
+			evaluator := NewEvaluator(NewRuntimeEnvironment(nil, nil, nil), &Executor{})
 			EvaluateTest(t, &ternary, evaluator, expectedAnswer)
 		})
 	}

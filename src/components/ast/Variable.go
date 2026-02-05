@@ -10,7 +10,7 @@ type VariableExpr struct {
 	Position   int
 }
 
-func (v *VariableExpr) Node()           {}
-func (v *VariableExpr) Pos() int        { return v.Position }
-func (v *VariableExpr) ExpressionNode() {}
-func (v *VariableExpr) Type() Type      { return v.ReturnType }
+func (v *VariableExpr) Node()               {}
+func (v *VariableExpr) Pos() int            { return v.Position }
+func (v *VariableExpr) ExpressionNode()     {}
+func (v *VariableExpr) Type() (Type, error) { return v.ReturnType, nil }

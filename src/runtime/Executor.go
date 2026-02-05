@@ -9,7 +9,7 @@ import (
 )
 
 type Executor struct {
-	Statements []*Statement
+	Statements []Statement
 	Env        *RuntimeEnvironment
 	LinePtr    int
 }
@@ -24,13 +24,27 @@ func (ex *Executor) Execute() (*Literal, error) {
 	return nil, nil
 }
 
-func (ex *Executor) executeStatement(statement *Statement) (*Literal, error) {
-	return nil, nil
+func (ex *Executor) executeStatement(statement Statement) (Literal, error) {
+	switch statement.(type) {
+	case *BlockStatement:
+		return ex.ExecuteBlock(statement.(*BlockStatement))
+	case *ExpressionStatement:
+		return nil, ex.ExecuteExpression(statement.(*ExpressionStatement))
+	case *VariableAssignmentStatement:
+		return nil, ex.ExecuteVariableAssignment(statement.(*VariableAssignmentStatement))
+	case *VariableDeclarationStatement:
+		return nil, ex.ExecuteVariableDeclaration(statement.(*VariableDeclarationStatement))
+	case *FunctionStatement:
+		return nil, ex.ExecuteFunction(statement.(*FunctionStatement))
+	case *ReturnStatement:
+		return ex.ExecuteReturnBlock(statement.(*ReturnStatement))
+	}
+	return nil, errors.New(fmt.Sprintf("Unsupported statement type: %T", statement))
 }
 
-func (ex *Executor) ExecuteBlock(block *BlockStatement) (*Literal, error) {
+func (ex *Executor) ExecuteBlock(block *BlockStatement) (Literal, error) {
 	ex.Env = ex.Env.NewChild()
-	var returnVal *Literal
+	var returnVal Literal
 	for _, stmt := range block.Statements {
 		statementReturn, err := ex.executeStatement(stmt)
 		if err != nil {
@@ -53,7 +67,7 @@ func (ex *Executor) ExecuteVariableAssignment(varAssignment *VariableAssignmentS
 	if err != nil {
 		return err
 	}
-	return ex.Env.AssignVariable(varAssignment.Name, &val)
+	return ex.Env.AssignVariable(varAssignment.Name, val)
 }
 
 func (ex *Executor) ExecuteVariableDeclaration(varDeclaration *VariableDeclarationStatement) error {
@@ -61,33 +75,21 @@ func (ex *Executor) ExecuteVariableDeclaration(varDeclaration *VariableDeclarati
 	if err != nil {
 		return err
 	}
-	return ex.Env.DefineVariable(varDeclaration.Name, &val)
+	return ex.Env.DefineVariable(varDeclaration.Name, val)
 }
 
-func (ex *Executor) ExecuteFunction(function *FunctionStatement) (*Literal, error) {
-	env := RuntimeEnvironment{}
-
-	for name, param := range function.Params {
-		evaluator := NewEvaluator(&env, ex)
-		value, evalErr := evaluator.Eval(*param)
-		if evalErr != nil {
-			return nil, evalErr
-		}
-		paramDefErr := env.DefineVariable(name, &value)
-		if paramDefErr != nil {
-			return nil, paramDefErr
-		}
+func (ex *Executor) ExecuteFunction(function *FunctionStatement) error {
+	err := ex.Env.DefineFunction(function.Name, function)
+	if err != nil {
+		return err
 	}
+	return nil
+}
 
-	parentEnv := ex.Env
-	ex.Env = &env
-
-	blockLit, blockErr := ex.ExecuteBlock(function.Block)
-	if blockErr != nil {
-		return nil, blockErr
+func (ex *Executor) ExecuteReturnBlock(returnStmt *ReturnStatement) (Literal, error) {
+	returnLit, returnErr := (&Evaluator{ex.Env, ex}).Eval(returnStmt.ReturnExpr)
+	if returnErr != nil {
+		return nil, returnErr
 	}
-
-	ex.Env = parentEnv
-
-	return blockLit, nil
+	return returnLit, returnErr
 }

@@ -16,5 +16,5 @@ type Literal interface {
 	ExpressionNode()
 	Node()
 	Pos() int
-	Type() Type
+	Type() (Type, error)
 }

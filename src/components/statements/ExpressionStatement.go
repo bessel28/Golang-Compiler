@@ -11,4 +11,4 @@ type ExpressionStatement struct {
 
 func (e *ExpressionStatement) Node()          {}
 func (e *ExpressionStatement) Pos() int       { return e.Position }
-func (e *ExpressionStatement) statementNode() {}
+func (e *ExpressionStatement) StatementNode() {}

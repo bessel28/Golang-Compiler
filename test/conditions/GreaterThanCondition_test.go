@@ -25,7 +25,7 @@ func TestGreaterThanCondition(t *testing.T) {
 	for index, tt := range tests {
 		testName := fmt.Sprintf("GreaterThanCondition%d", index)
 		t.Run(testName, func(t *testing.T) {
-			evaluator := NewEvaluator(&RuntimeEnvironment{}, &Executor{})
+			evaluator := NewEvaluator(NewRuntimeEnvironment(nil, nil, nil), &Executor{})
 
 			condition := BinaryCondition{GreaterThanCondition{}, tt.val1, tt.val2, nil}
 
@@ -60,7 +60,7 @@ func TestInvalidGreaterThanCondition(t *testing.T) {
 	for index, tt := range tests {
 		testName := fmt.Sprintf("InvalidGreaterThanCondition%d", index)
 		t.Run(testName, func(t *testing.T) {
-			evaluator := NewEvaluator(&RuntimeEnvironment{}, &Executor{})
+			evaluator := NewEvaluator(NewRuntimeEnvironment(nil, nil, nil), &Executor{})
 
 			condition := BinaryCondition{GreaterThanCondition{}, tt.val1, tt.val2, nil}
 
