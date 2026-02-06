@@ -2,7 +2,7 @@ package ast
 
 import (
 	. "compiler/src/components"
-	"compiler/src/components/literals"
+	"compiler/src/runtime/value"
 )
 
 type Expression interface {
@@ -12,7 +12,7 @@ type Expression interface {
 }
 
 type BinaryExpr struct {
-	Op         BinaryOperator[literals.Literal]
+	Op         BinaryOperator[value.RuntimeValue]
 	Left       Expression
 	Right      Expression
 	ReturnType Type
@@ -42,7 +42,7 @@ func (b *BinaryExpr) Type() (Type, error) {
 }
 
 type UnaryExpr struct {
-	Op         UnaryOperator[literals.Literal]
+	Op         UnaryOperator[value.RuntimeValue]
 	Arg        Expression
 	ReturnType Type
 }
@@ -68,7 +68,7 @@ func (u *UnaryExpr) Type() (Type, error) {
 }
 
 type TernaryExpr struct {
-	Op         TernaryOperator[literals.Literal]
+	Op         TernaryOperator[value.RuntimeValue]
 	Condition  Condition
 	Left       Expression
 	Right      Expression

@@ -7,4 +7,5 @@ const (
 	StringKind
 	BoolKind
 	FunctionRefKind
+	NilKind
 )

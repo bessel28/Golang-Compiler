@@ -2,10 +2,12 @@ package functions
 
 import (
 	. "compiler/src/components"
+	"compiler/src/runtime/value"
 	"reflect"
 )
 
 type FunctionSignature struct {
+	*value.FunctionIdentifier
 	Params     []*Parameter
 	ReturnType Type
 }
@@ -14,6 +16,9 @@ func (sig *FunctionSignature) Type() {}
 
 func (sig *FunctionSignature) Compare(other Type) bool {
 	if reflect.TypeOf(other) != reflect.TypeOf(sig) {
+		return false
+	}
+	if sig.FunctionIdentifier.UUID != other.(*FunctionSignature).FunctionIdentifier.UUID {
 		return false
 	}
 	if len(sig.Params) != len(other.(*FunctionSignature).Params) {

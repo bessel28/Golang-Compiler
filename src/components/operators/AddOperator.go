@@ -3,16 +3,17 @@ package operators
 import (
 	. "compiler/src/components"
 	. "compiler/src/components/literals"
+	. "compiler/src/runtime/value"
 )
 
 type AddOperator struct{}
 
-func (op AddOperator) Apply(left *Literal, right *Literal) (Literal, error) {
+func (op AddOperator) Apply(left RuntimeValue, right RuntimeValue) (RuntimeValue, error) {
 	switch {
-	case (*left).Kind() == IntKind && (*right).Kind() == IntKind:
-		return &IntLiteral{(*left).(*IntLiteral).Value + (*right).(*IntLiteral).Value, (*left).Pos()}, nil
+	case left.Kind() == IntKind && right.Kind() == IntKind:
+		return &IntValue{left.(*IntValue).Val + right.(*IntValue).Val}, nil
 	default:
-		return &StringLiteral{(*left).String() + (*right).String(), (*left).Pos()}, nil
+		return &StringValue{left.String().Val + right.String().Val}, nil
 	}
 }
 

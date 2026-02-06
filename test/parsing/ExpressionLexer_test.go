@@ -1,9 +1,6 @@
 package parsing
 
 import (
-	. "compiler/src/components"
-	. "compiler/src/components/functions"
-	. "compiler/src/parser"
 	. "compiler/src/parser/expression"
 	"fmt"
 	"testing"
@@ -110,20 +107,10 @@ func Test_LexIdentifiers(t *testing.T) {
 	var tests = []struct {
 		input         string
 		expectedToken *Token
-		varSymbols    *VarSymbolTable
-		funcSymbols   *FuncSymbolTable
 	}{
 		{
 			"var1",
 			&Token{TokenIdentifier, "var1", -1},
-			&VarSymbolTable{map[string]Type{"var1": &IntType{}}, nil},
-			&FuncSymbolTable{map[string]*FunctionSignature{}, nil},
-		},
-		{
-			"var1",
-			&Token{TokenIdentifier, "var1", -1},
-			&VarSymbolTable{map[string]Type{"var1": &IntType{}}, nil},
-			&FuncSymbolTable{map[string]*FunctionSignature{"var1": {[]*Parameter{}, &IntType{}}}, nil},
 		},
 	}
 
@@ -156,14 +143,10 @@ func Test_LexFunctionCall(t *testing.T) {
 	var tests = []struct {
 		input         string
 		expectedToken []*Token
-		varSymbols    *VarSymbolTable
-		funcSymbols   *FuncSymbolTable
 	}{
 		{
 			"foo()",
 			[]*Token{{TokenIdentifier, "foo", -1}, {TokenOpenParenthesis, "(", -1}, {TokenCloseParenthesis, ")", -1}, {TokenEOF, "", -1}},
-			&VarSymbolTable{map[string]Type{}, nil},
-			&FuncSymbolTable{map[string]*FunctionSignature{"foo": {[]*Parameter{}, &IntType{}}}, nil},
 		},
 	}
 

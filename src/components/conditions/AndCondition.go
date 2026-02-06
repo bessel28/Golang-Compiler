@@ -2,7 +2,7 @@ package conditions
 
 import (
 	. "compiler/src/components"
-	. "compiler/src/components/literals"
+	. "compiler/src/runtime/value"
 )
 
 type AndCondition struct{}
@@ -11,9 +11,9 @@ func (op AndCondition) GetType(Type, Type) (Type, error) {
 	return &BoolType{}, nil
 }
 
-func (op AndCondition) Apply(left *Literal, right *Literal) (*BoolLiteral, error) {
-	leftBool, _ := (*left).AsBool()
-	rightBool, _ := (*right).AsBool()
+func (op AndCondition) Apply(left RuntimeValue, right RuntimeValue) (*BoolValue, error) {
+	leftBool := left.BoolVal()
+	rightBool := right.BoolVal()
 
-	return &BoolLiteral{leftBool && rightBool, (*left).Pos()}, nil
+	return &BoolValue{leftBool.Val && rightBool.Val}, nil
 }

@@ -2,6 +2,7 @@ package statements
 
 import (
 	. "compiler/src/components"
+	"compiler/src/components/functions"
 )
 
 type FunctionStatement struct {
@@ -9,7 +10,8 @@ type FunctionStatement struct {
 	Params     map[string]Type
 	Block      *BlockStatement
 	ReturnType Type
-	Position   int
+	*functions.FunctionSignature
+	Position int
 }
 
 func (f *FunctionStatement) Node()          {}

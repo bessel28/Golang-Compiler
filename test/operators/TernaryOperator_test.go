@@ -6,6 +6,7 @@ import (
 	. "compiler/src/components/literals"
 	. "compiler/src/components/operators"
 	. "compiler/src/runtime"
+	"compiler/src/runtime/value"
 	. "compiler/test"
 	"fmt"
 	"testing"
@@ -35,7 +36,7 @@ func TestTernaryOperator(t *testing.T) {
 				nil,
 			}
 
-			expectedAnswer := &IntLiteral{Value: tt.res}
+			expectedAnswer := &value.IntValue{tt.res}
 			evaluator := NewEvaluator(NewRuntimeEnvironment(nil, nil, nil), &Executor{})
 			EvaluateTest(t, &ternary, evaluator, expectedAnswer)
 		})

@@ -1,7 +1,6 @@
 package runtime
 
 import (
-	. "compiler/src/components/literals"
 	. "compiler/src/parser/expression"
 	. "compiler/src/runtime"
 	"fmt"
@@ -83,7 +82,7 @@ func evalTest(testName string, input *string, expectedValue any, evaluator *Eval
 			t.Fatalf("Error evaluating expression: %v", evalErr)
 		}
 
-		if !evalVal.Equals(NewLiteral(expectedValue, nil)) {
+		if evalVal.Value() != expectedValue {
 			t.Fatalf("Eval returned wrong value. Expected: %v, Actual: %v", expectedValue, evalVal)
 		}
 	})

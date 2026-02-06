@@ -1,9 +1,12 @@
 package functions
 
-import . "compiler/src/components"
+import (
+	. "compiler/src/components"
+	"compiler/src/runtime/value"
+)
 
 type FunctionExpr struct {
-	Identifier string
+	Identifier *value.FunctionIdentifier
 	*FunctionSignature
 	Position int
 }
@@ -22,6 +25,6 @@ func (f *FunctionExpr) SetFunctionSignature(signature *FunctionSignature) {
 func (f *FunctionExpr) GetFunctionSignature() *FunctionSignature {
 	return f.FunctionSignature
 }
-func (f *FunctionExpr) GetIdentifier() string {
+func (f *FunctionExpr) GetIdentifier() *value.FunctionIdentifier {
 	return f.Identifier
 }

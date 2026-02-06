@@ -37,7 +37,7 @@ type Parser struct {
 	Tokens      []Token
 	pos         int
 	VarSymbols  *parser.VarSymbolTable
-	FuncSymbols *parser.FuncSymbolTable
+	FuncSymbols *parser.FuncParserSymbolTable
 }
 
 func (p *Parser) current() *Token {
@@ -75,7 +75,7 @@ func (p *Parser) nonAdvMatch(types ...TokenType) (bool, error) {
 
 func NewParser(input string) (*Parser, error) {
 	tokens, err := Lex(input)
-	return &Parser{tokens, 0, &parser.VarSymbolTable{}, &parser.FuncSymbolTable{}}, err
+	return &Parser{tokens, 0, &parser.VarSymbolTable{}, &parser.FuncParserSymbolTable{}}, err
 }
 
 // ParseExpr Attempts to parse all the Tokens in a Parser's Tokens field.
@@ -476,7 +476,8 @@ func (p *Parser) parseTerm() (Expression, error) {
 			return &VariableExpr{identifier.Value, varType, start}, nil
 		}
 
-		return &FunctionExpr{identifier.Value, nil, start}, nil
+		funcIdentifier := p.FuncSymbols.Get(identifier.Value)
+		return &FunctionExpr{funcIdentifier, nil, start}, nil
 	}
 
 	return nil, errors.New("Unknown term")

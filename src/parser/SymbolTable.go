@@ -3,18 +3,34 @@ package parser
 import (
 	. "compiler/src/components"
 	. "compiler/src/components/functions"
+	. "compiler/src/runtime/value"
 )
 
-type SymbolTable[T Type] struct {
-	Names  map[string]T
-	Parent *SymbolTable[T]
+type SymbolTable[ID any, T Type] interface {
+	Declare(name string, varType T)
+	IsDeclared(name ID) bool
+	Get(name ID) T
+	Child() *SymbolTable[ID, T]
 }
 
-func (s *SymbolTable[T]) Declare(name string, varType T) {
+type VarSymbolTable struct {
+	Names  map[string]Type
+	Parent *VarSymbolTable
+}
+type FuncParserSymbolTable struct {
+	Names  map[string]*FunctionIdentifier
+	Parent *FuncParserSymbolTable
+}
+type FuncSymbolTable struct {
+	Names  map[FunctionIdentifier]*FunctionSignature
+	Parent *FuncSymbolTable
+}
+
+func (s *VarSymbolTable) Declare(name string, varType Type) {
 	s.Names[name] = varType
 }
 
-func (s *SymbolTable[T]) IsDeclared(name string) bool {
+func (s *VarSymbolTable) IsDeclared(name string) bool {
 	if _, exists := s.Names[name]; exists {
 		return true
 	}
@@ -23,7 +39,7 @@ func (s *SymbolTable[T]) IsDeclared(name string) bool {
 	}
 	return false
 }
-func (s *SymbolTable[T]) Get(name string) T {
+func (s *VarSymbolTable) Get(name string) Type {
 	if _, exists := s.Names[name]; exists {
 		typeVal := s.Names[name]
 		return typeVal
@@ -31,15 +47,71 @@ func (s *SymbolTable[T]) Get(name string) T {
 	if s.Parent != nil {
 		return s.Parent.Get(name)
 	}
-	var zero T
-	return zero
+	return nil
 }
 
-func (s *SymbolTable[T]) Child() *SymbolTable[T] {
-	childTable := SymbolTable[T]{}
+func (s *VarSymbolTable) Child() *VarSymbolTable {
+	childTable := VarSymbolTable{}
 	childTable.Parent = s
 	return &childTable
 }
 
-type VarSymbolTable = SymbolTable[Type]
-type FuncSymbolTable = SymbolTable[*FunctionSignature]
+func (s *FuncParserSymbolTable) Declare(name string, varType *FunctionIdentifier) {
+	s.Names[name] = varType
+}
+
+func (s *FuncParserSymbolTable) IsDeclared(name string) bool {
+	if _, exists := s.Names[name]; exists {
+		return true
+	}
+	if s.Parent != nil {
+		return s.Parent.IsDeclared(name)
+	}
+	return false
+}
+func (s *FuncParserSymbolTable) Get(name string) *FunctionIdentifier {
+	if _, exists := s.Names[name]; exists {
+		typeVal := s.Names[name]
+		return typeVal
+	}
+	if s.Parent != nil {
+		return s.Parent.Get(name)
+	}
+	return nil
+}
+
+func (s *FuncParserSymbolTable) Child() *FuncParserSymbolTable {
+	childTable := FuncParserSymbolTable{}
+	childTable.Parent = s
+	return &childTable
+}
+
+func (s *FuncSymbolTable) Declare(name *FunctionIdentifier, varType *FunctionSignature) {
+	s.Names[*name] = varType
+}
+
+func (s *FuncSymbolTable) IsDeclared(name *FunctionIdentifier) bool {
+	if _, exists := s.Names[*name]; exists {
+		return true
+	}
+	if s.Parent != nil {
+		return s.Parent.IsDeclared(name)
+	}
+	return false
+}
+func (s *FuncSymbolTable) Get(name *FunctionIdentifier) *FunctionSignature {
+	if _, exists := s.Names[*name]; exists {
+		typeVal := s.Names[*name]
+		return typeVal
+	}
+	if s.Parent != nil {
+		return s.Parent.Get(name)
+	}
+	return nil
+}
+
+func (s *FuncSymbolTable) Child() *FuncSymbolTable {
+	childTable := FuncSymbolTable{}
+	childTable.Parent = s
+	return &childTable
+}

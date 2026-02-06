@@ -63,7 +63,7 @@ var (
 var (
 	lexers = []LexerData{
 		LexerPlus, LexerMinus, LexerMultiply, LexerDivide, LexerOpenParenthesis, LexerCloseParenthesis,
-		LexerQuestionMark, LexerColon, LexerEQ, LexerNeq, LexerGT, LexerLT, LexerOr, LexerAnd, LexerNot}
+		LexerQuestionMark, LexerColon, LexerEQ, LexerNeq, LexerGT, LexerLT, LexerOr, LexerAnd, LexerNot, LexerComma}
 	tokenLexers = []LexerData{LexerBool, LexerString, LexerNumber, LexerIdentifier}
 )
 

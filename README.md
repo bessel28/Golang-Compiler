@@ -1,8 +1,6 @@
 # Custom GoLang Compiler
 
-## Structure
-
-Below I'll go into detail of the components and behaviour of the compiler
+A custom GoLang Compiler I wrote as an introduction to GoLang
 
 ### Components
 

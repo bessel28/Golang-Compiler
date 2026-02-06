@@ -2,7 +2,7 @@ package ast
 
 import (
 	. "compiler/src/components"
-	"compiler/src/components/literals"
+	"compiler/src/runtime/value"
 )
 
 type Condition interface {
@@ -11,7 +11,7 @@ type Condition interface {
 }
 
 type BinaryCondition struct {
-	Op         BinaryOperator[*literals.BoolLiteral]
+	Op         BinaryOperator[*value.BoolValue]
 	Left       Expression
 	Right      Expression
 	ReturnType Type
@@ -42,7 +42,7 @@ func (b *BinaryCondition) Type() (Type, error) {
 }
 
 type UnaryCondition struct {
-	Op         UnaryOperator[*literals.BoolLiteral]
+	Op         UnaryOperator[*value.BoolValue]
 	Arg        Expression
 	ReturnType Type
 }

@@ -7,18 +7,19 @@ import (
 	. "compiler/src/components/statements"
 	. "compiler/src/components/variables"
 	. "compiler/src/runtime"
+	"compiler/src/runtime/value"
 	"reflect"
 	"testing"
 )
 
-func EvaluateTest(t *testing.T, expr Expression, evaluator *Evaluator, expectedLiteral Literal) {
+func EvaluateTest(t *testing.T, expr Expression, evaluator *Evaluator, expectedValue value.RuntimeValue) {
 	literal, err := evaluator.Eval(expr)
 	if err != nil {
 		t.Errorf("Error evaluating literal: %v", err)
 	}
 
-	if !expectedLiteral.Equals(literal) {
-		t.Errorf("Incorrect literal. Expected: %v, got: %v", expectedLiteral, literal)
+	if expectedValue.Value() != literal.Value() {
+		t.Errorf("Incorrect literal. Expected: %v, got: %v", expectedValue, literal)
 	}
 }
 
@@ -102,14 +103,14 @@ func CompareExpressions(actualExpr Expression, expectedExpr Expression, t *testi
 		actualFunction := actualExpr.(*CallExpr)
 		expectedFunction := expectedExpr.(*CallExpr)
 
-		if actualFunction.Callee.GetIdentifier() != expectedFunction.Callee.GetIdentifier() {
+		if actualFunction.Callee.GetFunctionSignature().FunctionIdentifier != expectedFunction.Callee.GetFunctionSignature().FunctionIdentifier {
 			t.Fatalf("Function Identifiers did not match. Expected %v, Actual %v",
-				expectedFunction.Callee.GetIdentifier(), actualFunction.Callee.GetIdentifier())
+				expectedFunction.Callee.GetFunctionSignature().FunctionIdentifier, actualFunction.Callee.GetFunctionSignature().FunctionIdentifier)
 		}
 
 		if actualFunction.Callee.GetFunctionSignature() == nil {
 			if expectedFunction.Callee.GetFunctionSignature() != nil {
-				t.Fatalf("Expected function '%v' was not found", expectedFunction.Callee.GetIdentifier())
+				t.Fatalf("Expected function '%v' was not found", expectedFunction.Callee.GetFunctionSignature().FunctionIdentifier)
 			}
 		} else {
 			switch {
@@ -161,9 +162,21 @@ func CompareRuntimeEnvironments(actualEnvironment *RuntimeEnvironment, expectedE
 		if !exists {
 			t.Fatalf("Environment variable (%s) not declared in env2", varName)
 		}
-		if !exprVar.Equals(actVar) {
-			t.Fatalf("Incorrect variable value for (%s). Expected %v, Actual %v", varName, exprVar, actVar)
+
+		switch exprVar.(type) {
+		case *value.FuncValue:
+			if exprVar.Value().(*value.FunctionIdentifier).Name != actVar.Value().(*value.FunctionIdentifier).Name {
+				t.Fatalf("Incorrect variable value for (%s). Expected %v, Actual %v", varName, exprVar, actVar)
+			}
+			if exprVar.Value().(*value.FunctionIdentifier).UUID != actVar.Value().(*value.FunctionIdentifier).UUID {
+				t.Fatalf("Incorrect variable value for (%s). Expected %v, Actual %v", varName, exprVar, actVar)
+			}
+		default:
+			if exprVar.Value() != actVar.Value() {
+				t.Fatalf("Incorrect variable value for (%s). Expected %v, Actual %v", varName, exprVar, actVar)
+			}
 		}
+
 	}
 	for funcName, expFunc := range expectedEnvironment.Functions {
 		actFunc, exists := actualEnvironment.Functions[funcName]

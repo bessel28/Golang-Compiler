@@ -3,16 +3,17 @@ package operators
 import (
 	. "compiler/src/components"
 	. "compiler/src/components/literals"
+	. "compiler/src/runtime/value"
 	"errors"
 )
 
 type SubOperator struct{}
 
-func (op SubOperator) Apply(left *Literal, right *Literal) (Literal, error) {
-	if !((*left).Kind() == IntKind && (*right).Kind() == IntKind) {
+func (op SubOperator) Apply(left RuntimeValue, right RuntimeValue) (RuntimeValue, error) {
+	if !(left.Kind() == IntKind && right.Kind() == IntKind) {
 		return nil, errors.New("invalid Operations")
 	}
-	return &IntLiteral{(*left).(*IntLiteral).Value - (*right).(*IntLiteral).Value, (*left).Pos()}, nil
+	return &IntValue{left.(*IntValue).Val - right.(*IntValue).Val}, nil
 }
 
 func (op SubOperator) GetType(left Type, right Type) (Type, error) {

@@ -1,30 +1,30 @@
 package runtime
 
 import (
-	. "compiler/src/components/literals"
 	. "compiler/src/components/statements"
+	. "compiler/src/runtime/value"
 	"errors"
 	"fmt"
 )
 
 type RuntimeEnvironment struct {
-	Variables map[string]Literal
-	Functions map[string]*FunctionStatement
+	Variables map[string]RuntimeValue
+	Functions map[FunctionIdentifier]*FunctionStatement
 	Parent    *RuntimeEnvironment
 }
 
-func NewRuntimeEnvironment(vars map[string]Literal, funcs map[string]*FunctionStatement, parent *RuntimeEnvironment) *RuntimeEnvironment {
+func NewRuntimeEnvironment(vars map[string]RuntimeValue, funcs map[FunctionIdentifier]*FunctionStatement, parent *RuntimeEnvironment) *RuntimeEnvironment {
 	if vars == nil {
-		vars = make(map[string]Literal)
+		vars = make(map[string]RuntimeValue)
 	}
 	if funcs == nil {
-		funcs = make(map[string]*FunctionStatement)
+		funcs = make(map[FunctionIdentifier]*FunctionStatement)
 	}
 
 	return &RuntimeEnvironment{vars, funcs, parent}
 }
 
-func (env *RuntimeEnvironment) DefineVariable(name string, value Literal) error {
+func (env *RuntimeEnvironment) DefineVariable(name string, value RuntimeValue) error {
 	if _, exists := env.Variables[name]; exists {
 		return errors.New(fmt.Sprintf("Runtime Error: variable %v already exists", name))
 	}
@@ -32,14 +32,14 @@ func (env *RuntimeEnvironment) DefineVariable(name string, value Literal) error 
 	return nil
 }
 
-func (env *RuntimeEnvironment) AssignVariable(name string, value Literal) error {
+func (env *RuntimeEnvironment) AssignVariable(name string, value RuntimeValue) error {
 	if _, exists := env.Variables[name]; !exists {
 		return errors.New(fmt.Sprintf("Runtime Error: variable %v does not exist", name))
 	}
 	env.Variables[name] = value
 	return nil
 }
-func (env *RuntimeEnvironment) GetVariable(name string) (Literal, error) {
+func (env *RuntimeEnvironment) GetVariable(name string) (RuntimeValue, error) {
 	if _, exists := env.Variables[name]; !exists {
 		if env.Parent != nil {
 			return env.Parent.GetVariable(name)
@@ -53,24 +53,24 @@ func (env *RuntimeEnvironment) GetVariable(name string) (Literal, error) {
 	return value, nil
 }
 
-func (env *RuntimeEnvironment) DefineFunction(name string, function *FunctionStatement) error {
-	if _, exists := env.Functions[name]; exists {
-		return errors.New(fmt.Sprintf("Runtime Error: function %v already exists", name))
+func (env *RuntimeEnvironment) DefineFunction(identifier *FunctionIdentifier, function *FunctionStatement) error {
+	if _, exists := env.Functions[*identifier]; exists {
+		return errors.New(fmt.Sprintf("Runtime Error: function %v already exists", identifier.String()))
 	}
-	env.Functions[name] = function
+	env.Functions[*identifier] = function
 	return nil
 }
 
-func (env *RuntimeEnvironment) GetFunction(name string) (*FunctionStatement, error) {
-	if _, exists := env.Functions[name]; !exists {
+func (env *RuntimeEnvironment) GetFunction(identifier *FunctionIdentifier) (*FunctionStatement, error) {
+	if _, exists := env.Functions[*identifier]; !exists {
 		if env.Parent != nil {
-			return env.Parent.GetFunction(name)
+			return env.Parent.GetFunction(identifier)
 		}
-		return nil, errors.New(fmt.Sprintf("Runtime Error: function %v does not exist", name))
+		return nil, errors.New(fmt.Sprintf("Runtime Error: function %v does not exist", identifier.Name))
 	}
-	function := env.Functions[name]
+	function := env.Functions[*identifier]
 	if function == nil {
-		return nil, errors.New(fmt.Sprintf("Runtime Error: function %v does not exist", name))
+		return nil, errors.New(fmt.Sprintf("Runtime Error: function %v does not exist", identifier.Name))
 	}
 	return function, nil
 }

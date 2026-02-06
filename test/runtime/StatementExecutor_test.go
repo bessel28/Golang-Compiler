@@ -9,6 +9,7 @@ import (
 	. "compiler/src/components/statements"
 	. "compiler/src/components/variables"
 	. "compiler/src/runtime"
+	. "compiler/src/runtime/value"
 	"compiler/test"
 	"fmt"
 	"testing"
@@ -23,14 +24,14 @@ func Test_VariableStatements(t *testing.T) {
 			[]Statement{
 				&VariableDeclarationStatement{"var1", NewLiteral(1, nil), 0},
 			},
-			NewRuntimeEnvironment(map[string]Literal{"var1": NewLiteral(1, nil)}, nil, nil),
+			NewRuntimeEnvironment(map[string]RuntimeValue{"var1": &IntValue{1}}, nil, nil),
 		},
 		{
 			[]Statement{
 				&VariableDeclarationStatement{"var1", NewLiteral(1, nil), 0},
 				&VariableAssignmentStatement{"var1", NewLiteral(2, nil), 1},
 			},
-			NewRuntimeEnvironment(map[string]Literal{"var1": NewLiteral(2, nil)}, nil, nil),
+			NewRuntimeEnvironment(map[string]RuntimeValue{"var1": &IntValue{2}}, nil, nil),
 		},
 	}
 
@@ -78,7 +79,7 @@ func Test_BlockStatements(t *testing.T) {
 					&VariableAssignmentStatement{"var1", NewLiteral(2, nil), 0},
 				}, 0},
 			},
-			NewRuntimeEnvironment(map[string]Literal{"var1": NewLiteral(1, nil)}, nil, nil),
+			NewRuntimeEnvironment(map[string]RuntimeValue{"var1": &IntValue{1}}, nil, nil),
 		},
 	}
 
@@ -107,14 +108,18 @@ func Test_FunctionStatements(t *testing.T) {
 					[]Statement{
 						&VariableDeclarationStatement{"var1", NewLiteral(1, nil), 0},
 						&VariableAssignmentStatement{"var1", NewLiteral(2, nil), 0},
-					}, 0}, &NilType{}, 0},
+					}, 0}, &NilType{},
+					&FunctionSignature{&FunctionIdentifier{"func1", 0}, []*Parameter{}, &NilType{}},
+					0},
 			},
-			NewRuntimeEnvironment(nil, map[string]*FunctionStatement{
-				"func1": {"func1", make(map[string]Type), &BlockStatement{
+			NewRuntimeEnvironment(nil, map[FunctionIdentifier]*FunctionStatement{
+				{"func1", 0}: {"func1", make(map[string]Type), &BlockStatement{
 					[]Statement{
 						&VariableDeclarationStatement{"var1", NewLiteral(1, nil), 0},
 						&VariableAssignmentStatement{"var1", NewLiteral(2, nil), 0},
-					}, 0}, &NilType{}, 0},
+					}, 0}, &NilType{},
+					&FunctionSignature{&FunctionIdentifier{"func1", 0}, []*Parameter{}, &NilType{}},
+					0},
 			}, nil),
 		},
 		{
@@ -123,14 +128,22 @@ func Test_FunctionStatements(t *testing.T) {
 					[]Statement{
 						&VariableDeclarationStatement{"var1", NewLiteral(1, nil), 0},
 						&VariableAssignmentStatement{"var1", NewLiteral(2, nil), 0},
-					}, 0}, &NilType{}, 0},
+					}, 0}, &NilType{},
+					&FunctionSignature{&FunctionIdentifier{"func1", 0},
+						[]*Parameter{{"param1", &IntType{}}},
+						&NilType{}},
+					0},
 			},
-			NewRuntimeEnvironment(nil, map[string]*FunctionStatement{
-				"func1": {"func1", map[string]Type{"param1": &IntType{}}, &BlockStatement{
+			NewRuntimeEnvironment(nil, map[FunctionIdentifier]*FunctionStatement{
+				{"func1", 0}: {"func1", map[string]Type{"param1": &IntType{}}, &BlockStatement{
 					[]Statement{
 						&VariableDeclarationStatement{"var1", NewLiteral(1, nil), 0},
 						&VariableAssignmentStatement{"var1", NewLiteral(2, nil), 0},
-					}, 0}, &NilType{}, 0},
+					}, 0}, &NilType{},
+					&FunctionSignature{&FunctionIdentifier{"func1", 0},
+						[]*Parameter{{"param1", &IntType{}}},
+						&NilType{}},
+					0},
 			}, nil),
 		},
 	}
@@ -162,26 +175,34 @@ func Test_ReturnStatements(t *testing.T) {
 							Position:   0,
 							ReturnExpr: NewLiteral(1, nil),
 						},
-					}, 0}, &IntType{}, 0},
+					}, 0}, &IntType{},
+					&FunctionSignature{&FunctionIdentifier{"func1", 0},
+						[]*Parameter{},
+						&IntType{}},
+					0},
 				&VariableDeclarationStatement{
 					"var1", &CallExpr{
-						&FunctionExpr{"func1", &FunctionSignature{[]*Parameter{}, &IntType{}}, 0},
+						&FunctionExpr{&FunctionIdentifier{"func1", 0}, &FunctionSignature{&FunctionIdentifier{"func1", 0}, []*Parameter{}, &IntType{}}, 0},
 						make([]Expression, 0),
 						0,
 					}, 0},
 			},
 			NewRuntimeEnvironment(
-				map[string]Literal{
-					"var1": NewLiteral(1, nil),
+				map[string]RuntimeValue{
+					"var1": &IntValue{1},
 				},
-				map[string]*FunctionStatement{
-					"func1": {"func1", make(map[string]Type), &BlockStatement{
+				map[FunctionIdentifier]*FunctionStatement{
+					{"func1", 0}: {"func1", make(map[string]Type), &BlockStatement{
 						[]Statement{
 							&ReturnStatement{
 								Position:   0,
 								ReturnExpr: NewLiteral(1, nil),
 							},
-						}, 0}, &IntType{}, 0},
+						}, 0}, &IntType{},
+						&FunctionSignature{&FunctionIdentifier{"func1", 0},
+							[]*Parameter{},
+							&IntType{}},
+						0},
 				}, nil),
 		},
 		{
@@ -192,26 +213,34 @@ func Test_ReturnStatements(t *testing.T) {
 							Position:   0,
 							ReturnExpr: &BinaryExpr{AddOperator{}, NewLiteral(1, nil), NewLiteral(1, nil), &IntType{}},
 						},
-					}, 0}, &IntType{}, 0},
+					}, 0}, &IntType{},
+					&FunctionSignature{&FunctionIdentifier{"func1", 0},
+						[]*Parameter{},
+						&IntType{}},
+					0},
 				&VariableDeclarationStatement{
 					"var1", &CallExpr{
-						&FunctionExpr{"func1", &FunctionSignature{[]*Parameter{}, &IntType{}}, 0},
+						&FunctionExpr{&FunctionIdentifier{"func1", 0}, &FunctionSignature{&FunctionIdentifier{"func1", 0}, []*Parameter{}, &IntType{}}, 0},
 						make([]Expression, 0),
 						0,
 					}, 0},
 			},
 			NewRuntimeEnvironment(
-				map[string]Literal{
-					"var1": NewLiteral(2, nil),
+				map[string]RuntimeValue{
+					"var1": &IntValue{2},
 				},
-				map[string]*FunctionStatement{
-					"func1": {"func1", make(map[string]Type), &BlockStatement{
+				map[FunctionIdentifier]*FunctionStatement{
+					{"func1", 0}: {"func1", make(map[string]Type), &BlockStatement{
 						[]Statement{
 							&ReturnStatement{
 								Position:   0,
 								ReturnExpr: &BinaryExpr{AddOperator{}, NewLiteral(1, nil), NewLiteral(1, nil), &IntType{}},
 							},
-						}, 0}, &IntType{}, 0},
+						}, 0}, &IntType{},
+						&FunctionSignature{&FunctionIdentifier{"func1", 0},
+							[]*Parameter{},
+							&IntType{}},
+						0},
 				}, nil),
 		},
 		{
@@ -222,26 +251,34 @@ func Test_ReturnStatements(t *testing.T) {
 							Position:   0,
 							ReturnExpr: &VariableExpr{"param1", &IntType{}, 0},
 						},
-					}, 0}, &IntType{}, 0},
+					}, 0}, &IntType{},
+					&FunctionSignature{&FunctionIdentifier{"func1", 0},
+						[]*Parameter{{"param1", &IntType{}}},
+						&IntType{}},
+					0},
 				&VariableDeclarationStatement{
 					"var1", &CallExpr{
-						&FunctionExpr{"func1", &FunctionSignature{[]*Parameter{{"param1", &IntType{}}}, &IntType{}}, 0},
+						&FunctionExpr{&FunctionIdentifier{"func1", 0}, &FunctionSignature{&FunctionIdentifier{"func1", 0}, []*Parameter{{"param1", &IntType{}}}, &IntType{}}, 0},
 						[]Expression{NewLiteral(2, nil)},
 						0,
 					}, 0},
 			},
 			NewRuntimeEnvironment(
-				map[string]Literal{
-					"var1": NewLiteral(2, nil),
+				map[string]RuntimeValue{
+					"var1": &IntValue{2},
 				},
-				map[string]*FunctionStatement{
-					"func1": {"func1", map[string]Type{"param1": &IntType{}}, &BlockStatement{
+				map[FunctionIdentifier]*FunctionStatement{
+					{"func1", 0}: {"func1", map[string]Type{"param1": &IntType{}}, &BlockStatement{
 						[]Statement{
 							&ReturnStatement{
 								Position:   0,
 								ReturnExpr: &VariableExpr{"param1", &IntType{}, 0},
 							},
-						}, 0}, &IntType{}, 0},
+						}, 0}, &IntType{},
+						&FunctionSignature{&FunctionIdentifier{"func1", 0},
+							[]*Parameter{{"param1", &IntType{}}},
+							&IntType{}},
+						0},
 				}, nil),
 		},
 	}
@@ -296,28 +333,37 @@ func Test_FuncVariables(t *testing.T) {
 			&FunctionStatement{"func1", make(map[string]Type), &BlockStatement{
 				[]Statement{
 					&ReturnStatement{0, NewLiteral(1, nil)},
-				}, 0}, &IntType{}, 0},
+				}, 0}, &IntType{},
+				&FunctionSignature{&FunctionIdentifier{"func1", 0}, []*Parameter{}, &IntType{}},
+				0},
 			&VariableDeclarationStatement{
 				"var1",
-				&FunctionExpr{"func1", &FunctionSignature{[]*Parameter{}, &IntType{}}, 0},
+				&FunctionExpr{&FunctionIdentifier{"func1", 0}, &FunctionSignature{&FunctionIdentifier{"func1", 0}, []*Parameter{}, &IntType{}}, 0},
 				1,
 			},
 			&VariableDeclarationStatement{
 				"var2",
 				&CallExpr{
-					&FunctionExpr{"func1", &FunctionSignature{[]*Parameter{}, &IntType{}}, 0},
+					&FunctionExpr{&FunctionIdentifier{"func1", 0}, &FunctionSignature{&FunctionIdentifier{"func", 0}, []*Parameter{}, &IntType{}}, 0},
 					[]Expression{},
 					2,
 				},
 				2,
 			},
 		},
-			NewRuntimeEnvironment(nil, map[string]*FunctionStatement{
-				"func1": {"func1", make(map[string]Type), &BlockStatement{
-					[]Statement{
-						&ReturnStatement{0, NewLiteral(1, nil)},
-					}, 0}, &IntType{}, 0},
-			}, nil),
+			NewRuntimeEnvironment(
+				map[string]RuntimeValue{
+					"var1": &FuncValue{&FunctionIdentifier{"func1", 0}},
+					"var2": &IntValue{1},
+				},
+				map[FunctionIdentifier]*FunctionStatement{
+					{"func1", 0}: {"func1", make(map[string]Type), &BlockStatement{
+						[]Statement{
+							&ReturnStatement{0, NewLiteral(1, nil)},
+						}, 0}, &IntType{},
+						&FunctionSignature{&FunctionIdentifier{"func1", 0}, []*Parameter{}, &IntType{}},
+						0},
+				}, nil),
 		},
 	}
 

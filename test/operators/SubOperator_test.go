@@ -5,6 +5,7 @@ import (
 	. "compiler/src/components/literals"
 	. "compiler/src/components/operators"
 	. "compiler/src/runtime"
+	"compiler/src/runtime/value"
 	. "compiler/test"
 	"fmt"
 	"testing"
@@ -31,7 +32,7 @@ func TestSubOperator(t *testing.T) {
 				Op:    SubOperator{},
 			}
 
-			expectedAnswer := &IntLiteral{Value: tt.res}
+			expectedAnswer := &value.IntValue{tt.res}
 			evaluator := NewEvaluator(NewRuntimeEnvironment(nil, nil, nil), &Executor{})
 			EvaluateTest(t, &binOperator, evaluator, expectedAnswer)
 		})

@@ -2,8 +2,8 @@ package runtime
 
 import (
 	. "compiler/src/components/ast"
-	. "compiler/src/components/literals"
 	. "compiler/src/components/statements"
+	"compiler/src/runtime/value"
 	"errors"
 	"fmt"
 )
@@ -14,7 +14,7 @@ type Executor struct {
 	LinePtr    int
 }
 
-func (ex *Executor) Execute() (*Literal, error) {
+func (ex *Executor) Execute() (value.RuntimeValue, error) {
 	for ; ex.LinePtr < len(ex.Statements); ex.LinePtr++ {
 		_, err := ex.executeStatement(ex.Statements[ex.LinePtr])
 		if err != nil {
@@ -24,7 +24,7 @@ func (ex *Executor) Execute() (*Literal, error) {
 	return nil, nil
 }
 
-func (ex *Executor) executeStatement(statement Statement) (Literal, error) {
+func (ex *Executor) executeStatement(statement Statement) (value.RuntimeValue, error) {
 	switch statement.(type) {
 	case *BlockStatement:
 		return ex.ExecuteBlock(statement.(*BlockStatement))
@@ -42,9 +42,9 @@ func (ex *Executor) executeStatement(statement Statement) (Literal, error) {
 	return nil, errors.New(fmt.Sprintf("Unsupported statement type: %T", statement))
 }
 
-func (ex *Executor) ExecuteBlock(block *BlockStatement) (Literal, error) {
+func (ex *Executor) ExecuteBlock(block *BlockStatement) (value.RuntimeValue, error) {
 	ex.Env = ex.Env.NewChild()
-	var returnVal Literal
+	var returnVal value.RuntimeValue
 	for _, stmt := range block.Statements {
 		statementReturn, err := ex.executeStatement(stmt)
 		if err != nil {
@@ -79,14 +79,14 @@ func (ex *Executor) ExecuteVariableDeclaration(varDeclaration *VariableDeclarati
 }
 
 func (ex *Executor) ExecuteFunction(function *FunctionStatement) error {
-	err := ex.Env.DefineFunction(function.Name, function)
+	err := ex.Env.DefineFunction(function.FunctionSignature.FunctionIdentifier, function)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (ex *Executor) ExecuteReturnBlock(returnStmt *ReturnStatement) (Literal, error) {
+func (ex *Executor) ExecuteReturnBlock(returnStmt *ReturnStatement) (value.RuntimeValue, error) {
 	returnLit, returnErr := (&Evaluator{ex.Env, ex}).Eval(returnStmt.ReturnExpr)
 	if returnErr != nil {
 		return nil, returnErr

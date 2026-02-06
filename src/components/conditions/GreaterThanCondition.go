@@ -3,6 +3,7 @@ package conditions
 import (
 	. "compiler/src/components"
 	. "compiler/src/components/literals"
+	. "compiler/src/runtime/value"
 	"errors"
 )
 
@@ -19,20 +20,20 @@ func (op GreaterThanCondition) GetType(left Type, right Type) (Type, error) {
 	return &BoolType{}, nil
 }
 
-func (op GreaterThanCondition) Apply(left *Literal, right *Literal) (*BoolLiteral, error) {
-	if (*left).Kind() == BoolKind || (*right).Kind() == BoolKind {
+func (op GreaterThanCondition) Apply(left RuntimeValue, right RuntimeValue) (*BoolValue, error) {
+	if left.Kind() == BoolKind || right.Kind() == BoolKind {
 		return nil, errors.New("Invalid comparison")
 	}
 
-	if (*left).Kind() != (*right).Kind() {
+	if left.Kind() != right.Kind() {
 		return nil, errors.New("Invalid comparison")
 	}
 
-	switch (*left).Kind() {
+	switch left.Kind() {
 	case IntKind:
-		return &BoolLiteral{(*left).(*IntLiteral).Value > (*right).(*IntLiteral).Value, (*left).Pos()}, nil
+		return &BoolValue{left.(*IntValue).Value().(int) > right.(*IntValue).Value().(int)}, nil
 	case StringKind:
-		return &BoolLiteral{(*left).(*StringLiteral).Value > (*right).(*StringLiteral).Value, (*left).Pos()}, nil
+		return &BoolValue{left.(*StringValue).Value().(string) > right.(*StringValue).Value().(string)}, nil
 	default:
 		return nil, errors.New("unhandled default case")
 	}

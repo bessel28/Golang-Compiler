@@ -5,6 +5,7 @@ import (
 	. "compiler/src/components/conditions"
 	. "compiler/src/components/literals"
 	. "compiler/src/runtime"
+	"compiler/src/runtime/value"
 	"fmt"
 	"testing"
 )
@@ -35,13 +36,13 @@ func TestEqualCondition(t *testing.T) {
 				t.Error(err)
 			}
 
-			boolCondition, ok := conditionCheck.(*BoolLiteral)
+			boolCondition, ok := conditionCheck.(*value.BoolValue)
 			if !ok {
 				t.Errorf("Condition check returned non-BoolLiteral %T", conditionCheck)
 			}
 
-			if boolCondition.Value != tt.res {
-				t.Errorf("Condition Expected %v but check returned %v", tt.res, boolCondition.Value)
+			if boolCondition.Value() != tt.res {
+				t.Errorf("Condition Expected %v but check returned %v", tt.res, boolCondition.Value())
 			}
 		})
 	}

@@ -2,17 +2,17 @@ package operators
 
 import (
 	"compiler/src/components"
-	. "compiler/src/components/literals"
+	. "compiler/src/runtime/value"
 	"errors"
 )
 
 type IfElseOperator struct{}
 
-func (op IfElseOperator) Apply(condition *BoolLiteral, trueVal *Literal, falseVal *Literal) (Literal, error) {
-	if condition.Value {
-		return *trueVal, nil
+func (op IfElseOperator) Apply(condition *BoolValue, trueVal RuntimeValue, falseVal RuntimeValue) (RuntimeValue, error) {
+	if condition.Val {
+		return trueVal, nil
 	} else {
-		return *falseVal, nil
+		return falseVal, nil
 	}
 }
 

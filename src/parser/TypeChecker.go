@@ -6,6 +6,7 @@ import (
 	. "compiler/src/components/functions"
 	. "compiler/src/components/statements"
 	. "compiler/src/components/variables"
+	"compiler/src/runtime/value"
 	"errors"
 	"fmt"
 )
@@ -83,8 +84,8 @@ func (tc *TypeChecker) checkFunctionStatement(statement *FunctionStatement) (Typ
 	for name, paramType := range statement.Params {
 		args = append(args, &Parameter{name, paramType})
 	}
+
 	for _, stmt := range statement.Block.Statements {
-		//TODO this needs to ensure that EVERY Return type is the same and not just use the final one found
 		switch stmt.(type) {
 		case *ReturnStatement:
 			rtnType, rtnErr := tc.checkReturnStatement(stmt.(*ReturnStatement))
@@ -106,8 +107,10 @@ func (tc *TypeChecker) checkFunctionStatement(statement *FunctionStatement) (Typ
 	}
 	tc.VarSymbolTable = varSymbols
 
-	signature := &FunctionSignature{args, statement.ReturnType}
-	tc.FuncSymbolTable.Declare(statement.Name, signature)
+	statement.FunctionIdentifier = value.NewFunctionIdentifier(statement.Name)
+
+	signature := &FunctionSignature{statement.FunctionIdentifier, args, statement.ReturnType}
+	tc.FuncSymbolTable.Declare(statement.FunctionIdentifier, signature)
 	return statement.ReturnType, nil
 }
 func (tc *TypeChecker) checkReturnStatement(statement *ReturnStatement) (Type, error) {
@@ -156,7 +159,7 @@ func (tc *TypeChecker) checkExpression(expr Expression) (Type, error) {
 		signature := signatureType.(*FunctionSignature)
 		if len(callExpr.Params) != len(signature.Params) {
 			return nil, errors.New(fmt.Sprintf("Incorrect arg count for %v. Expected %d, Actual: %d",
-				callExpr.Callee.GetIdentifier(), len(signature.Params), len(callExpr.Params)))
+				signature.Name, len(signature.Params), len(callExpr.Params)))
 		}
 
 		for i, param := range callExpr.Params {
@@ -167,7 +170,7 @@ func (tc *TypeChecker) checkExpression(expr Expression) (Type, error) {
 
 			if !paramType.Compare(signature.Params[i].ValType) {
 				return nil, errors.New(fmt.Sprintf("Incorrect param type for %v. Expected %T, Actual: %T",
-					callExpr.Callee.GetIdentifier(), signature.Params[i].ValType, paramType))
+					signature.Name, signature.Params[i].ValType, paramType))
 			}
 		}
 

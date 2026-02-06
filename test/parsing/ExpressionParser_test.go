@@ -10,6 +10,7 @@ import (
 	"compiler/src/components/statements"
 	. "compiler/src/parser"
 	. "compiler/src/parser/expression"
+	. "compiler/src/runtime/value"
 	. "compiler/test"
 	"fmt"
 	"testing"
@@ -209,24 +210,27 @@ func Test_InvalidParser(t *testing.T) {
 }
 
 func Test_parseFunctionCall(t *testing.T) {
-	fooFunc := FunctionSignature{[]*Parameter{}, &IntType{}}
-	fooFunc1Param := FunctionSignature{[]*Parameter{{"param1", &IntType{}}}, &IntType{}}
+	fooFunc := FunctionSignature{&FunctionIdentifier{"foo", 0}, []*Parameter{}, &IntType{}}
+	fooFunc1Param := FunctionSignature{&FunctionIdentifier{"foo", 1}, []*Parameter{{"param1", &IntType{}}}, &IntType{}}
 	var tests = []struct {
-		input        string
-		expectedExpr Expression
-		varSymbols   *VarSymbolTable
-		funcSymbols  *FuncSymbolTable
+		input            string
+		expectedExpr     Expression
+		varSymbols       *VarSymbolTable
+		funcParseSymbols *FuncParserSymbolTable
+		funcSymbols      *FuncSymbolTable
 	}{
 		{
 			"foo()",
-			&CallExpr{&FunctionExpr{"foo", &fooFunc, 0}, []Expression{}, -1},
+			&CallExpr{&FunctionExpr{fooFunc.FunctionIdentifier, &fooFunc, 0}, []Expression{}, -1},
 			&VarSymbolTable{map[string]Type{}, nil},
-			&FuncSymbolTable{map[string]*FunctionSignature{"foo": &fooFunc}, nil},
+			&FuncParserSymbolTable{map[string]*FunctionIdentifier{"foo": fooFunc.FunctionIdentifier}, nil},
+			&FuncSymbolTable{map[FunctionIdentifier]*FunctionSignature{*fooFunc.FunctionIdentifier: &fooFunc}, nil},
 		}, {
 			"foo(1)",
-			&CallExpr{&FunctionExpr{"foo", &fooFunc1Param, 0}, []Expression{NewLiteral(1, nil)}, -1},
+			&CallExpr{&FunctionExpr{fooFunc1Param.FunctionIdentifier, &fooFunc1Param, 0}, []Expression{NewLiteral(1, nil)}, -1},
 			&VarSymbolTable{map[string]Type{}, nil},
-			&FuncSymbolTable{map[string]*FunctionSignature{"foo": &fooFunc1Param}, nil},
+			&FuncParserSymbolTable{map[string]*FunctionIdentifier{"foo": fooFunc1Param.FunctionIdentifier}, nil},
+			&FuncSymbolTable{map[FunctionIdentifier]*FunctionSignature{*fooFunc1Param.FunctionIdentifier: &fooFunc1Param}, nil},
 		},
 	}
 
@@ -238,7 +242,7 @@ func Test_parseFunctionCall(t *testing.T) {
 				t.Fatalf("parser error: %v", parserErr)
 			}
 			parser.VarSymbols = tt.varSymbols
-			parser.FuncSymbols = tt.funcSymbols
+			parser.FuncSymbols = tt.funcParseSymbols
 			expr, exprErr := parser.ParseExpr()
 			if exprErr != nil {
 				t.Fatalf("expression error: %v", exprErr)
