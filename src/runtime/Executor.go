@@ -9,9 +9,9 @@ import (
 )
 
 type Executor struct {
-	Statements []Statement
-	Env        *RuntimeEnvironment
-	LinePtr    int
+	*BlockStatement
+	Env     *RuntimeEnvironment
+	LinePtr int
 }
 
 func (ex *Executor) Execute() (value.RuntimeValue, error) {

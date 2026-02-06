@@ -2,29 +2,47 @@
 
 A custom GoLang Compiler I wrote as an introduction to GoLang
 
-### Components
+## Components
 
-#### Literals
+### Literals
 These are the base value types that are supported by the compiler
 - Int
 - String
 - Bool
+ 
+### Identifiers
+- Functions
+- Variables
 
-#### Conditions
+### Conditions
 
 - EqualTo
 - GreaterThan
 - LessThan
 - NotEqualTo
 
-#### Operators
+### Operators
 - Add
 - Subtract
 - Multiply
 - Divide
 - Ternary
 
-## AST Tree Structure
+### Statements
+- Blocks
+- Lone Expression
+- Function Definition
+- Variable Definition
+- Variable Assignment
+
+### Functions
+- Function Calls
+
+## AST Statement Tree Structure
+
+
+
+## AST Expression Tree Structure
 
 The heirarchy of the AST determines the precedence of tokens
 
@@ -37,7 +55,8 @@ The heirarchy of the AST determines the precedence of tokens
 - ParseAdditive - Plus or Minus Binary Operators
 - ParseMultiplicative - Times or Divide Binary Operators
 - ParseUnary - Unary Operators
-- ParseTerm - Literals, Parentheses
+- ParseCall - Function calls
+- ParseTerm - Literals, Parentheses, Identifiers
 ```
 Expr -> Ternary
 Ternary -> OrExpr ( ? Expr : Ternary )?

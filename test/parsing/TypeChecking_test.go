@@ -5,7 +5,7 @@ import (
 	. "compiler/src/components/ast"
 	. "compiler/src/components/literals"
 	. "compiler/src/components/operators"
-	"compiler/src/components/statements"
+	. "compiler/src/components/statements"
 	. "compiler/src/parser"
 	. "compiler/src/parser/expression"
 	"fmt"
@@ -36,9 +36,9 @@ func Test_TypeChcker(t *testing.T) {
 				t.Fatal(exprErr)
 			}
 
-			stmts := []Statement{&statements.ExpressionStatement{expr, 0}}
+			blockStatement := BlockStatement{[]Statement{&ExpressionStatement{expr, 0}}, 0}
 
-			typeChecker := NewTypeChecker(&stmts, nil, nil)
+			typeChecker := NewTypeChecker(&blockStatement, nil, nil)
 
 			checkErr := typeChecker.CheckTypes()
 			if checkErr != nil {

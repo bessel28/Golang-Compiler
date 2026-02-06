@@ -34,6 +34,12 @@ const (
 	TokenNot
 	TokenIdentifier
 	TokenComma
+	TokenOpenBrace
+	TokenCloseBrace
+	TokenVar
+	TokenFunction
+	TokenReturn
+	TokenAssignment
 )
 
 var (
@@ -57,7 +63,13 @@ var (
 	LexerAnd              = LexerData{TokenAnd, simpleLexer("&&")}
 	LexerNot              = LexerData{TokenNot, simpleLexer("!")}
 	LexerIdentifier       = LexerData{TokenIdentifier, lexIdentifier}
-	LexerComma            = LexerData{TokenIdentifier, simpleLexer(",")}
+	LexerComma            = LexerData{TokenComma, simpleLexer(",")}
+	LexerOpenBrace        = LexerData{TokenOpenBrace, simpleLexer("{")}
+	LexerCloseBrace       = LexerData{TokenCloseBrace, simpleLexer("}")}
+	LexerVar              = LexerData{TokenVar, simpleLexer("var ")}
+	LexerFunction         = LexerData{TokenFunction, simpleLexer("function ")}
+	LexerReturn           = LexerData{TokenReturn, simpleLexer("return ")}
+	LexerAssignment       = LexerData{TokenAssignment, simpleLexer("=")}
 )
 
 var (

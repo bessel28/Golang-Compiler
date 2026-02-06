@@ -7,7 +7,7 @@ import (
 	. "compiler/src/components/functions"
 	. "compiler/src/components/literals"
 	. "compiler/src/components/operators"
-	"compiler/src/components/statements"
+	. "compiler/src/components/statements"
 	. "compiler/src/parser"
 	. "compiler/src/parser/expression"
 	. "compiler/src/runtime/value"
@@ -247,7 +247,7 @@ func Test_parseFunctionCall(t *testing.T) {
 			if exprErr != nil {
 				t.Fatalf("expression error: %v", exprErr)
 			}
-			NewTypeChecker(&[]Statement{&statements.ExpressionStatement{expr, 0}}, tt.varSymbols, tt.funcSymbols).CheckTypes()
+			NewTypeChecker(&BlockStatement{[]Statement{&ExpressionStatement{expr, 0}}, 0}, tt.varSymbols, tt.funcSymbols).CheckTypes()
 
 			CompareExpressions(expr, tt.expectedExpr, t)
 		})

@@ -17,20 +17,20 @@ import (
 
 func Test_VariableStatements(t *testing.T) {
 	var tests = []struct {
-		input       []Statement
+		input       BlockStatement
 		expectedEnv *RuntimeEnvironment
 	}{
 		{
-			[]Statement{
+			BlockStatement{[]Statement{
 				&VariableDeclarationStatement{"var1", NewLiteral(1, nil), 0},
-			},
+			}, 0},
 			NewRuntimeEnvironment(map[string]RuntimeValue{"var1": &IntValue{1}}, nil, nil),
 		},
 		{
-			[]Statement{
+			BlockStatement{[]Statement{
 				&VariableDeclarationStatement{"var1", NewLiteral(1, nil), 0},
 				&VariableAssignmentStatement{"var1", NewLiteral(2, nil), 1},
-			},
+			}, 0},
 			NewRuntimeEnvironment(map[string]RuntimeValue{"var1": &IntValue{2}}, nil, nil),
 		},
 	}
@@ -38,7 +38,7 @@ func Test_VariableStatements(t *testing.T) {
 	for i, tt := range tests {
 		testName := fmt.Sprintf("test_VariableStatements%d", i)
 		t.Run(testName, func(t *testing.T) {
-			executor := Executor{tt.input, NewRuntimeEnvironment(nil, nil, nil), 0}
+			executor := Executor{&tt.input, NewRuntimeEnvironment(nil, nil, nil), 0}
 			_, err := executor.Execute()
 			if err != nil {
 				t.Error(err)
@@ -51,34 +51,34 @@ func Test_VariableStatements(t *testing.T) {
 
 func Test_BlockStatements(t *testing.T) {
 	var tests = []struct {
-		input       []Statement
+		input       BlockStatement
 		expectedEnv *RuntimeEnvironment
 	}{
 		{
-			[]Statement{
+			BlockStatement{[]Statement{
 				&BlockStatement{[]Statement{
 					&VariableDeclarationStatement{"var1", NewLiteral(1, nil), 0},
 				}, 0},
-			},
+			}, 0},
 			NewRuntimeEnvironment(nil, nil, nil),
 		},
 		{
-			[]Statement{
+			BlockStatement{[]Statement{
 				&BlockStatement{[]Statement{
 					&VariableDeclarationStatement{"var1", NewLiteral(1, nil), 0},
 					&VariableAssignmentStatement{"var1", NewLiteral(2, nil), 0},
 				}, 0},
-			},
+			}, 0},
 			NewRuntimeEnvironment(nil, nil, nil),
 		},
 		{
-			[]Statement{
+			BlockStatement{[]Statement{
 				&VariableDeclarationStatement{"var1", NewLiteral(1, nil), 0},
 				&BlockStatement{[]Statement{
 					&VariableDeclarationStatement{"var1", NewLiteral(1, nil), 0},
 					&VariableAssignmentStatement{"var1", NewLiteral(2, nil), 0},
 				}, 0},
-			},
+			}, 0},
 			NewRuntimeEnvironment(map[string]RuntimeValue{"var1": &IntValue{1}}, nil, nil),
 		},
 	}
@@ -86,7 +86,7 @@ func Test_BlockStatements(t *testing.T) {
 	for i, tt := range tests {
 		testName := fmt.Sprintf("test_BlockStatements%d", i)
 		t.Run(testName, func(t *testing.T) {
-			executor := Executor{tt.input, NewRuntimeEnvironment(nil, nil, nil), 0}
+			executor := Executor{&tt.input, NewRuntimeEnvironment(nil, nil, nil), 0}
 			_, err := executor.Execute()
 			if err != nil {
 				t.Error(err)
@@ -99,11 +99,11 @@ func Test_BlockStatements(t *testing.T) {
 
 func Test_FunctionStatements(t *testing.T) {
 	var tests = []struct {
-		input       []Statement
+		input       BlockStatement
 		expectedEnv *RuntimeEnvironment
 	}{
 		{
-			[]Statement{
+			BlockStatement{[]Statement{
 				&FunctionStatement{"func1", make(map[string]Type), &BlockStatement{
 					[]Statement{
 						&VariableDeclarationStatement{"var1", NewLiteral(1, nil), 0},
@@ -111,7 +111,7 @@ func Test_FunctionStatements(t *testing.T) {
 					}, 0}, &NilType{},
 					&FunctionSignature{&FunctionIdentifier{"func1", 0}, []*Parameter{}, &NilType{}},
 					0},
-			},
+			}, 0},
 			NewRuntimeEnvironment(nil, map[FunctionIdentifier]*FunctionStatement{
 				{"func1", 0}: {"func1", make(map[string]Type), &BlockStatement{
 					[]Statement{
@@ -123,7 +123,7 @@ func Test_FunctionStatements(t *testing.T) {
 			}, nil),
 		},
 		{
-			[]Statement{
+			BlockStatement{[]Statement{
 				&FunctionStatement{"func1", map[string]Type{"param1": &IntType{}}, &BlockStatement{
 					[]Statement{
 						&VariableDeclarationStatement{"var1", NewLiteral(1, nil), 0},
@@ -133,7 +133,7 @@ func Test_FunctionStatements(t *testing.T) {
 						[]*Parameter{{"param1", &IntType{}}},
 						&NilType{}},
 					0},
-			},
+			}, 0},
 			NewRuntimeEnvironment(nil, map[FunctionIdentifier]*FunctionStatement{
 				{"func1", 0}: {"func1", map[string]Type{"param1": &IntType{}}, &BlockStatement{
 					[]Statement{
@@ -151,7 +151,7 @@ func Test_FunctionStatements(t *testing.T) {
 	for i, tt := range tests {
 		testName := fmt.Sprintf("test_FunctionStatements%d", i)
 		t.Run(testName, func(t *testing.T) {
-			executor := Executor{tt.input, NewRuntimeEnvironment(nil, nil, nil), 0}
+			executor := Executor{&tt.input, NewRuntimeEnvironment(nil, nil, nil), 0}
 			_, err := executor.Execute()
 			if err != nil {
 				t.Error(err)
@@ -164,11 +164,11 @@ func Test_FunctionStatements(t *testing.T) {
 
 func Test_ReturnStatements(t *testing.T) {
 	var tests = []struct {
-		input       []Statement
+		input       BlockStatement
 		expectedEnv *RuntimeEnvironment
 	}{
 		{
-			[]Statement{
+			BlockStatement{[]Statement{
 				&FunctionStatement{"func1", make(map[string]Type), &BlockStatement{
 					[]Statement{
 						&ReturnStatement{
@@ -186,7 +186,7 @@ func Test_ReturnStatements(t *testing.T) {
 						make([]Expression, 0),
 						0,
 					}, 0},
-			},
+			}, 0},
 			NewRuntimeEnvironment(
 				map[string]RuntimeValue{
 					"var1": &IntValue{1},
@@ -206,7 +206,7 @@ func Test_ReturnStatements(t *testing.T) {
 				}, nil),
 		},
 		{
-			[]Statement{
+			BlockStatement{[]Statement{
 				&FunctionStatement{"func1", make(map[string]Type), &BlockStatement{
 					[]Statement{
 						&ReturnStatement{
@@ -224,7 +224,7 @@ func Test_ReturnStatements(t *testing.T) {
 						make([]Expression, 0),
 						0,
 					}, 0},
-			},
+			}, 0},
 			NewRuntimeEnvironment(
 				map[string]RuntimeValue{
 					"var1": &IntValue{2},
@@ -244,7 +244,7 @@ func Test_ReturnStatements(t *testing.T) {
 				}, nil),
 		},
 		{
-			[]Statement{
+			BlockStatement{[]Statement{
 				&FunctionStatement{"func1", map[string]Type{"param1": &IntType{}}, &BlockStatement{
 					[]Statement{
 						&ReturnStatement{
@@ -262,7 +262,7 @@ func Test_ReturnStatements(t *testing.T) {
 						[]Expression{NewLiteral(2, nil)},
 						0,
 					}, 0},
-			},
+			}, 0},
 			NewRuntimeEnvironment(
 				map[string]RuntimeValue{
 					"var1": &IntValue{2},
@@ -286,7 +286,7 @@ func Test_ReturnStatements(t *testing.T) {
 	for i, tt := range tests {
 		testName := fmt.Sprintf("test_ReturnStatements%d", i)
 		t.Run(testName, func(t *testing.T) {
-			executor := Executor{tt.input, NewRuntimeEnvironment(nil, nil, nil), 0}
+			executor := Executor{&tt.input, NewRuntimeEnvironment(nil, nil, nil), 0}
 			_, err := executor.Execute()
 			if err != nil {
 				t.Error(err)
@@ -299,13 +299,13 @@ func Test_ReturnStatements(t *testing.T) {
 
 func Test_ExpressionStatements(t *testing.T) {
 	var tests = []struct {
-		input       []Statement
+		input       BlockStatement
 		expectedEnv *RuntimeEnvironment
 	}{
 		{
-			[]Statement{
+			BlockStatement{[]Statement{
 				&ExpressionStatement{NewLiteral(1, nil), 0},
-			},
+			}, 0},
 			NewRuntimeEnvironment(nil, nil, nil),
 		},
 	}
@@ -313,7 +313,7 @@ func Test_ExpressionStatements(t *testing.T) {
 	for i, tt := range tests {
 		testName := fmt.Sprintf("test_ExpressionStatements%d", i)
 		t.Run(testName, func(t *testing.T) {
-			executor := Executor{tt.input, NewRuntimeEnvironment(nil, nil, nil), 0}
+			executor := Executor{&tt.input, NewRuntimeEnvironment(nil, nil, nil), 0}
 			_, err := executor.Execute()
 			if err != nil {
 				t.Error(err)
@@ -326,10 +326,10 @@ func Test_ExpressionStatements(t *testing.T) {
 
 func Test_FuncVariables(t *testing.T) {
 	var tests = []struct {
-		input       []Statement
+		input       BlockStatement
 		expectedEnv *RuntimeEnvironment
 	}{
-		{[]Statement{
+		{BlockStatement{[]Statement{
 			&FunctionStatement{"func1", make(map[string]Type), &BlockStatement{
 				[]Statement{
 					&ReturnStatement{0, NewLiteral(1, nil)},
@@ -350,7 +350,7 @@ func Test_FuncVariables(t *testing.T) {
 				},
 				2,
 			},
-		},
+		}, 0},
 			NewRuntimeEnvironment(
 				map[string]RuntimeValue{
 					"var1": &FuncValue{&FunctionIdentifier{"func1", 0}},
@@ -370,7 +370,7 @@ func Test_FuncVariables(t *testing.T) {
 	for i, tt := range tests {
 		testName := fmt.Sprintf("test_FuncVariables%d", i)
 		t.Run(testName, func(t *testing.T) {
-			executor := Executor{tt.input, NewRuntimeEnvironment(nil, nil, nil), 0}
+			executor := Executor{&tt.input, NewRuntimeEnvironment(nil, nil, nil), 0}
 			_, err := executor.Execute()
 			if err != nil {
 				t.Error(err)

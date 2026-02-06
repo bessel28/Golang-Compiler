@@ -69,7 +69,7 @@ func (ev *Evaluator) EvalExpr(exprNode Expression) (RuntimeValue, error) {
 		}
 
 		env := NewRuntimeEnvironment(nil, nil, nil)
-		funcExecutor := Executor{[]Statement{funcStmt.Block}, env, 0}
+		funcExecutor := Executor{funcStmt.Block, env, 0}
 
 		for paramIndex, param := range callExpr.Params {
 			evaluator := NewEvaluator(env, &funcExecutor)

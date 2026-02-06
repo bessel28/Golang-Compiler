@@ -12,23 +12,23 @@ import (
 )
 
 type TypeChecker struct {
-	Statements *[]Statement
+	*BlockStatement
 	*VarSymbolTable
 	*FuncSymbolTable
 }
 
-func NewTypeChecker(statements *[]Statement, varSymbols *VarSymbolTable, funcSymbols *FuncSymbolTable) *TypeChecker {
+func NewTypeChecker(block *BlockStatement, varSymbols *VarSymbolTable, funcSymbols *FuncSymbolTable) *TypeChecker {
 	if varSymbols == nil {
 		varSymbols = &VarSymbolTable{}
 	}
 	if funcSymbols == nil {
 		funcSymbols = &FuncSymbolTable{}
 	}
-	return &TypeChecker{statements, varSymbols, funcSymbols}
+	return &TypeChecker{block, varSymbols, funcSymbols}
 }
 
 func (tc *TypeChecker) CheckTypes() error {
-	for _, stmt := range *tc.Statements {
+	for _, stmt := range tc.BlockStatement.Statements {
 		_, err := tc.CheckType(stmt)
 		if err != nil {
 			return err
